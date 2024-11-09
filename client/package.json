@@ -1,0 +1,29 @@
+{
+  "name": "@site/client",
+  "scripts": {
+    "dev": "farm start --clearScreen false",
+    "watch": "farm watch",
+    "build": "farm build"
+  },
+  "devDependencies": {
+    "@chakra-ui/cli": "^3.1.0",
+    "@farmfe/cli": "^1.0.4",
+    "@farmfe/core": "^1.3.33",
+    "@farmfe/plugin-react": "^1.2.4",
+    "@types/node": "^22.9.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "react-refresh": "^0.14.2",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "@chakra-ui/react": "^3.1.0",
+    "@emotion/react": "^11.13.3",
+    "core-js": "^3.39.0",
+    "next-themes": "^0.4.3",
+    "pixi.js": "^8.5.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-icons": "^5.3.0"
+  }
+}
