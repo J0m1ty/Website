@@ -10,6 +10,7 @@ export default defineConfig({
         },
         lazyCompilation: false
     },
+    publicDir: 'public',
     plugins: [
         '@farmfe/plugin-react'
     ]
