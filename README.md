@@ -1,2 +1,3 @@
-![{BE525B7D-85A8-4DAB-BE1A-B1A2EC949F67}](https://github.com/user-attachments/assets/48aad879-95db-40b9-9bd8-edcc20a8eb13)
+![{9FDC719B-C614-4900-BAEF-9B1BED315797}](https://github.com/user-attachments/assets/14a029e3-921f-431e-9910-463135c418b6)
+
 Landing page for my website. Built with Pixi.js and FarmFe.
