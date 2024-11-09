@@ -1,9 +1,9 @@
 import { BlurFilter, Graphics } from 'pixi.js';
 import { IVector } from './IVector';
-import { constrain, lerpColor, map, random, skewedRandom } from './math';
+import { constrain, lerp, lerpColor, map, random, skewedRandom } from './math';
 
 const generate = () => {
-    const freq = random(0.05, 0.5);
+    const freq = skewedRandom(0.05, 1, 2);
     const phase = random(0, Math.PI * 2);
 
     return (t: number) => {
@@ -24,9 +24,14 @@ export const blurFilters = [
     new BlurFilter()
 ];
 
+export function isLowEndDevice() {
+    const ua = navigator.userAgent.toLowerCase();
+    return /iphone|ipad|android|mobile/.test(ua);
+}
+
 blurFilters.forEach(filter => {
     filter.strength = random() > 0.1 ? skewedRandom(5, 50, 5) : 5;
-    filter.quality = 4;
+    filter.quality = isLowEndDevice() ? 2 : 5;
 });
 
 export class Particle {
@@ -39,6 +44,8 @@ export class Particle {
     acc: IVector;
     lifetime: number;
     timer: number = 0;
+    popTimer: number = 1;
+    pop: boolean = false;
 
     readonly baseo: number;
     readonly breathing: (t: number) => number;
@@ -49,11 +56,12 @@ export class Particle {
     readonly size: number;
     readonly color: number;
 
-    constructor(x: number, y: number, jump: boolean) {
+    constructor(x: number, y: number, index: number, rnd: boolean, jump: boolean) {
         this.pos = { x, y };
+        this.index = index;
         this.jump = jump;
 
-        let speed = skewedRandom(0.05, 0.5, 3) / 10;
+        let speed = (skewedRandom(0.05, 0.5, 3) / 10) * (random() > 0.8 ? 2 : 1);
         let angle = random(0, Math.PI * 2);
         this.vel = {
             x: speed * Math.cos(angle),
@@ -62,27 +70,27 @@ export class Particle {
 
         this.acc = { x: 0, y: 0 };
 
-        let cr = random() < 0.5;
-
-        this.baseo = cr ? 0.5 : skewedRandom(0.5, 1, 0.1);
+        this.baseo = constrain(map(this.index * 10, 0, 1000, 0.5, 1), 0.5, 1);
         this.breathing = generate();
         this.maxLifetime = skewedRandom(30, 60, 0.5);
+        if (rnd) this.maxLifetime /= (random() < 0.3 ? 4 : random() < 0.6 ? 2 : 1);
         this.lifetime = this.maxLifetime;
         this.fadeIn = this.maxLifetime * random(0.1, 0.15);
         this.fadeOut = this.maxLifetime * random(0.1, 0.15);
 
         this.size = 20 + random(0, 50) + skewedRandom(0, 100, 20);
-        let v = cr ? 0x000000 : 0xffffff;
-        this.color = random() < 0.2 ? lerpColor(v, 0x00ff00, skewedRandom(0, 1, 2)) : v;
+        this.color = lerpColor(0x013220, 0x00ff00, skewedRandom(0, 1, 2));
 
         this.graphics.filters = [ blurFilters[this.blurFilterIndex] ];
 
         this.graphics
             .circle(0, 0, this.size)
-            .fill({ color: this.color });
+            .fill({ color: 0xffffff });
 
         this.graphics.position.set(this.pos.x, this.pos.y);
         this.graphics.alpha = 0;
+        this.graphics.zIndex = this.index;
+        this.graphics.tint = this.color;
     }
 
     get opacity() {
@@ -113,6 +121,11 @@ export class Particle {
             val *= fadeOutProgress;
         }
 
+        // Apply pop
+        if (this.pop) {
+            val *= this.popTimer * 2;
+        }
+
         // Ensure val is within [0, 1]
         val = constrain(val, 0, 1);
 
@@ -127,6 +140,10 @@ export class Particle {
         if (this.lifetime > this.fadeOut && this.lifetime < this.maxLifetime - this.fadeIn) {
             this.lifetime = this.fadeOut;
         }
+    }
+
+    break() {
+        this.pop = true;
     }
 
     applyForce(force: IVector) {
@@ -145,6 +162,18 @@ export class Particle {
         this.graphics.alpha = this.opacity;
         this.lifetime -= dt;
         this.timer += dt;
+
+        if (this.pop) {
+            let size = lerp(this.graphics.getSize().width, map(this.popTimer, 1, 0, this.size * 2.5, this.size), 0.5);
+            this.graphics.setSize(size, size);
+
+            this.graphics.tint = lerpColor(this.graphics.tint, lerpColor(0x000000, 0x00ff00, this.popTimer), 0.5);
+
+            this.popTimer -= dt;
+            if (this.popTimer <= 0) {
+                this.lifetime = 0;
+            }
+        }
 
         this.graphics.position.set(this.pos.x, this.pos.y);
     }

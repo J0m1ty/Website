@@ -1,10 +1,11 @@
 import { Box } from "@chakra-ui/react";
 import { useEffect, useRef } from "react";
-import { Application, BitmapText, Container, Graphics } from "pixi.js";
+import { Application, Container } from "pixi.js";
 import { constrain, map, random } from "./util/math";
-import { Particle } from "./util/Particle";
+import { isLowEndDevice, Particle } from "./util/Particle";
 
 const Main = () => {
+    const mouse = useRef({ x: 0, y: 0, click: false });
     const appRef = useRef<Application | null>(null);
     const containerRef = useRef<Container | null>(null);
     const particles = useRef<Array<Particle> | null>(null);
@@ -12,10 +13,9 @@ const Main = () => {
 
     const createApp = async () => {
         if (!ref.current || appRef.current) return;
-
         const app = new Application();
 
-        await app.init({ resizeTo: ref.current, antialias: true, backgroundAlpha: 0 });
+        await app.init({ resizeTo: ref.current, antialias: isLowEndDevice() ? false : true, background: 0x000000, autoDensity: true, resolution: window.devicePixelRatio || 1 });
         ref.current.replaceChildren(app.canvas);
         appRef.current = app;
 
@@ -27,6 +27,8 @@ const Main = () => {
             return new Particle(
                 map(i, 0, len, 0, appRef.current.screen.width),
                 random(0, appRef.current.screen.height),
+                i,
+                true,
                 true
             );
         });
@@ -39,27 +41,37 @@ const Main = () => {
     const render = () => {
         if (!appRef.current) return;
 
-        const text = new BitmapText({
-            text: "jomity.net",
-            style: {
-                fontFamily: 'Comfortaa',
-                fontSize: 128,
-                fill: 0xffffff,
-                align: 'center'
-            }
-        });
-
-        text.anchor.set(0.5);
-        text.position.set(appRef.current.screen.width / 2, appRef.current.screen.height / 2);
-        appRef.current.stage.addChild(text);
-
+        let timer = 10;
         appRef.current.ticker.add(() => {
             const dt = appRef.current.ticker.deltaMS / 1000;
 
+            const clicked: number[] = [];
             for (let i = 0; i < particles.current.length; i++) {
-                particles.current[i].update(dt);
+                const p = particles.current[i];
+                p.graphics.zIndex = i;
+                p.update(dt);
+
+                if (mouse.current.click && !p.pop) {
+                    const dx = p.pos.x - mouse.current.x;
+                    const dy = p.pos.y - mouse.current.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const r = p.size;
+
+                    if (dist < r) {
+                        clicked.push(i);
+                    }
+                }
+
+                if (p.pos.x < -150 || p.pos.x > window.innerWidth + 150 || p.pos.y < -150 || p.pos.y > window.innerHeight + 150) {
+                    p.break();
+                }
             }
 
+            const max = Math.max(-1, ...clicked);
+            if (max !== -1) {
+                particles.current[max].pop = true;
+            }
+            
             particles.current = particles.current.filter(p => {
                 if (p.dead) {
                     appRef.current.stage.removeChild(p.graphics);
@@ -70,13 +82,15 @@ const Main = () => {
                 return true;
             });
 
-            const density = 0.0001;
-            const area = appRef.current.screen.width * appRef.current.screen.height;
+            const density = 0.0001 * (isLowEndDevice() ? 0.75 : 1);
+            const area = window.innerWidth * window.innerHeight;
             const goalSize = ~~constrain(area * density, 5, 150);
             if (particles.current.length < goalSize) {
                 const p = new Particle(
-                    random(-100, appRef.current.screen.width + 100),
-                    random(-100, appRef.current.screen.height + 100),
+                    random(-10, window.innerWidth + 10),
+                    random(-10, window.innerHeight + 10),
+                    particles.current.length - 1,
+                    timer > 0,
                     false
                 );
 
@@ -88,8 +102,9 @@ const Main = () => {
                 particles.current[~~random(0, goalSize - 1)].reduceLifetime();
             }
 
-            text.style.fontSize = constrain(map(appRef.current.screen.width, 400, 1920, 18, 128) * 2, 18, 128);
-            text.position.set(appRef.current.screen.width / 2, appRef.current.screen.height / 2);
+            if (timer > 0) timer -= dt;
+
+            mouse.current.click = false;
         });
 
         console.log('App created');
@@ -98,12 +113,26 @@ const Main = () => {
     useEffect(() => {
         createApp();
 
+        const moveListener = (e: MouseEvent) => {
+            mouse.current.x = e.clientX;
+            mouse.current.y = e.clientY;
+        }
+        window.addEventListener('mousemove', moveListener);
+
+        const clickListener = (e: MouseEvent) => {
+            mouse.current.click = true;
+        }
+        window.addEventListener('click', clickListener);
+
         return () => {
             if (appRef.current) {
                 appRef.current.destroy(true, true);
                 appRef.current = null;
                 console.log('App destroyed');
             }
+
+            window.removeEventListener('mousemove', moveListener);
+            window.removeEventListener('click', clickListener);
         };
     }, []);
 
