@@ -8,6 +8,12 @@ export const serveFile = (res: HttpResponse, filePath: string, contentType: stri
             if (encoding) res.writeHeader("Content-Encoding", "br");
             res.writeHeader("Content-Type", contentType);
 
+            const expiresDate = new Date();
+            expiresDate.setMonth(expiresDate.getMonth() + 1);
+            
+            res.writeHeader("Expires", expiresDate.toUTCString());
+            res.writeHeader("Cache-Control", "public, max-age=2592000");
+
             const file = readFileSync(filePath);
             res.end(file);
         }

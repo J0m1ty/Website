@@ -71,7 +71,7 @@ const Main = () => {
             if (max !== -1) {
                 particles.current[max].pop = true;
             }
-            
+
             particles.current = particles.current.filter(p => {
                 if (p.dead) {
                     appRef.current.stage.removeChild(p.graphics);
@@ -97,7 +97,7 @@ const Main = () => {
                 particles.current.push(p);
                 containerRef.current.addChild(p.graphics);
             }
-            
+
             if (particles.current.length > goalSize) {
                 particles.current[~~random(0, goalSize - 1)].reduceLifetime();
             }
@@ -106,7 +106,6 @@ const Main = () => {
 
             mouse.current.click = false;
         });
-
         console.log('App created');
     }
 
