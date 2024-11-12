@@ -2,7 +2,7 @@
   "name": "@site/client",
   "scripts": {
     "dev": "farm start --clearScreen false",
-    "watch": "farm watch",
+    "watch": "farm watch --clearScreen false",
     "build": "farm build"
   },
   "devDependencies": {
@@ -24,6 +24,7 @@
     "pixi.js": "^8.5.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-icons": "^5.3.0"
+    "react-icons": "^5.3.0",
+    "react-router-dom": "^6.28.0"
   }
 }
