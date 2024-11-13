@@ -6,8 +6,7 @@ export default defineConfig({
             index: './src/index.html'
         },
         output: {
-            path: 'dist',
-            filename: '[name].[hash].v2.js'
+            path: 'dist'
         },
         lazyCompilation: false
     },

@@ -10,7 +10,7 @@ const Navbar = () => {
     return (
         <Box px={5} bgColor={"bg.subtle"} borderBottom={"1px solid"} borderColor={"bg.emphasized"}>
             <Flex h={16} alignItems={"center"} justifyContent={"space-between"}>
-                <Text fontSize={"xl"} fontWeight={"bold"} flexDir="row" display="flex">jomity.net <Box color="green.solid" ml={2}>Services</Box></Text>
+                <Box fontSize={"xl"} fontWeight={"bold"} flexDir="row" display="flex">jomity.net <Text color="green.solid" ml={2}>Services</Text></Box>
 
                 <Flex alignItems={'center'}>
                     <Stack direction={"row"} gap={3}>

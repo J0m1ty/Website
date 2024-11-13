@@ -1,3 +1,3 @@
 #!/bin/bash
 cd /home/web/site
-screen -dmS site pnpm start
+screen -dmS website_process pnpm start

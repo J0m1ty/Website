@@ -18,6 +18,7 @@ const Overlay = () => {
             flexDirection={"column"}
             justifyContent={"center"}
             overflow={"hidden"}
+            id={"noSelect"}
         >
             <Stack display="flex" flexDirection="column" alignItems="center" gap={5}>
                 <Box
