@@ -14,6 +14,7 @@ import minecraftUrl from "./../images/minecraft.png";
 import nginxUrl from "./../images/nginx.png";
 import pokerbotUrl from "./../images/pokerbot.jpg";
 import threadblendUrl from "./../images/threadblend.png";
+import websiteUrl from "./../images/website.png";
 
 const StatusPage = () => {
     const { colorMode } = useColorMode();
@@ -83,7 +84,7 @@ const StatusPage = () => {
             status: "unknown",
         },
         {
-            image: "",
+            image: websiteUrl,
             name: "Status",
             key: "website",
             tag: "other",
