@@ -34,6 +34,10 @@ export const getContentType = (url: string) => {
             return "application/javascript";
         case "css":
             return "text/css";
+        case "png":
+            return "image/png";
+        case "jpg":
+            return "image/jpeg";
         default:
             return "text/plain";
     }

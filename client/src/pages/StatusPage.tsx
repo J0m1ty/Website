@@ -1,16 +1,22 @@
-import { Box, Card, Center, Collapsible, createListCollection, Flex, For, HStack, IconButton, SimpleGrid, Spinner, Text, VStack } from "@chakra-ui/react";
+import { Avatar, Box, Card, Center, Collapsible, createListCollection, Flex, For, HStack, IconButton, SimpleGrid, Spinner, Text, VStack } from "@chakra-ui/react";
 import Navbar from "../components/Navbar"
 import Footer from "../components/Footer";
 import { SelectContent, SelectItem, SelectItemGroup, SelectRoot, SelectTrigger, SelectValueText } from "../components/ui/select";
 import { useEffect, useMemo, useState } from "react";
-import { Avatar } from "../components/ui/avatar";
 import { IoWarning } from "react-icons/io5";
 import { BsThreeDots } from "react-icons/bs";
-import { useColorModeValue } from "../components/ui/color-mode";
+import { useColorMode, useColorModeValue } from "../components/ui/color-mode";
 import { Button } from "../components/ui/button";
 import { readableMemory, readableTime } from "../util/parse";
+import armadahexUrl from "./../images/armadahex.png";
+import mindustryUrl from "./../images/mindustry.png";
+import minecraftUrl from "./../images/minecraft.png";
+import nginxUrl from "./../images/nginx.png";
+import pokerbotUrl from "./../images/pokerbot.jpg";
+import threadblendUrl from "./../images/threadblend.png";
 
 const StatusPage = () => {
+    const { colorMode } = useColorMode();
     const iconColor = useColorModeValue("#000", "#fff");
     const [sortValue, setSortValue] = useState("status");
     const [filterValue, setFilterValue] = useState("");
@@ -19,7 +25,7 @@ const StatusPage = () => {
     const [timer, setTimer] = useState(0);
     const [processes, setProcesses] = useState<Process[]>([
         {
-            image: "",
+            image: minecraftUrl,
             name: "Minecraft",
             key: "minecraft",
             tag: "game",
@@ -29,7 +35,7 @@ const StatusPage = () => {
             status: "unknown",
         },
         {
-            image: "",
+            image: mindustryUrl,
             name: "Mindustry",
             key: "mindustry",
             tag: "game",
@@ -39,7 +45,8 @@ const StatusPage = () => {
             status: "unknown",
         },
         {
-            image: "",
+            image: pokerbotUrl,
+            invert: true,
             name: "pokerbot",
             key: "pokerbot",
             tag: "bot",
@@ -48,7 +55,8 @@ const StatusPage = () => {
             status: "unknown",
         },
         {
-            image: "",
+            image: threadblendUrl,
+            invert: true,
             name: "threadblend",
             key: "threadblend",
             tag: "bot",
@@ -57,7 +65,7 @@ const StatusPage = () => {
             status: "unknown",
         },
         {
-            image: "",
+            image: armadahexUrl,
             name: "Armadahex Auth",
             key: "armadahex-auth",
             tag: "service",
@@ -66,7 +74,7 @@ const StatusPage = () => {
             status: "unknown",
         },
         {
-            image: "",
+            image: nginxUrl,
             name: "NGINX",
             key: "nginx",
             tag: "other",
@@ -91,6 +99,7 @@ const StatusPage = () => {
         if (response.ok) {
             const { uptime, processes } = await response.json() as { uptime: number, processes: { name: string, status: string, cpu?: number, memory?: number, started?: number }[] };
             setUptime(uptime);
+            console.log('fetching processes', processes);
 
             setProcesses((list) => list.map((p) => {
                 const process = processes.find((r) => r.name === p.key);
@@ -240,16 +249,19 @@ const StatusPage = () => {
                                         <Collapsible.Root>
                                             <Flex justifyContent={"space-between"} flexDir={"row"} alignItems={"center"} w="100%">
                                                 <HStack gap="4">
-                                                    <Avatar
-                                                        src={process.image}
+                                                    <Avatar.Root
                                                         size="lg"
                                                         variant="outline"
                                                         outlineWidth="2px"
                                                         outlineColor={`${stateToColor(process.status)}/70`}
                                                         outlineOffset="2px"
                                                         outlineStyle="solid"
-                                                        fallback={<IoWarning size="24" style={{ position: "relative", top: "-2px" }} />}
-                                                    />
+                                                    >
+                                                        <Avatar.Image src={process.image} loading="eager" />
+                                                        <Avatar.Fallback>
+                                                            <IoWarning size="24" style={{ position: "relative", top: "-2px" }} />
+                                                        </Avatar.Fallback>
+                                                    </Avatar.Root>
                                                     <Text fontWeight="semibold" textStyle="md">{process.name}</Text>
                                                     <Text color="fg.subtle" fontSize="sm">{process.port ? `:${process.port}` : ""}</Text>
                                                 </HStack>
@@ -364,6 +376,7 @@ type Location = { value: string; link?: string };
 
 interface Process {
     image: string;
+    invert?: true;
     key: string;
     name: string;
     tag: Tag;
