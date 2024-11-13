@@ -1,6 +1,8 @@
 import { existsSync, readFileSync, stat } from "fs";
 import { join } from "path";
 import { App, HttpResponse } from "uWebSockets.js";
+import { processes } from "systeminformation";
+import { uptime } from "os";
 
 export const serveFile = (res: HttpResponse, filePath: string, contentType: string, encoding?: boolean) => {
     res.cork(() => {
@@ -10,7 +12,7 @@ export const serveFile = (res: HttpResponse, filePath: string, contentType: stri
 
             const expiresDate = new Date();
             expiresDate.setMonth(expiresDate.getMonth() + 1);
-            
+
             res.writeHeader("Expires", expiresDate.toUTCString());
             res.writeHeader("Cache-Control", "public, max-age=2592000");
 
@@ -37,6 +39,12 @@ export const getContentType = (url: string) => {
     }
 }
 
+export const compare = (a: number, b: number) => {
+    if (a > b) return 1;
+    if (a < b) return -1;
+    return 0;
+}
+
 export class WebServer {
     root: string;
     port: number;
@@ -50,7 +58,60 @@ export class WebServer {
         await new Promise((resolve, reject) => {
             const server = App();
 
-            server.any("/*", (res, req) => {
+            server.get("/api/status", (res) => {
+                let abort = false;
+                res.onAborted(() => abort = true);
+
+                // set CORS
+                res.writeHeader("Access-Control-Allow-Origin", "*");
+                res.writeHeader("Access-Control-Allow-Methods", "GET");
+
+                processes().then((data) => {
+                    const search = [
+                        { name: "minecraft", term: "minecraft_process" },
+                        { name: "website", term: "website_process" },
+                        { name: "nginx", term: "nginx" },
+                    ] as const;
+
+                    const results: { [ key: string ]: { name: string, data: typeof data.list[0] | null } } = {};
+                    search.forEach(({ name, term }) => {
+                        let list = data.list.filter((p) => p.command.toLowerCase().includes(term) || p.params.toLowerCase().includes(term));
+
+                        if (list.length === 0) {
+                            results[term] = { name, data: null };
+                            return;
+                        }
+
+                        // filter out sleeping
+                        let filtered = list.filter((p) => p.state !== "sleeping");
+                        if (filtered.length > 0) list = filtered;
+                        
+                        // sort by cpu usage
+                        list.sort((a, b) => compare(b.cpu, a.cpu));
+                        results[term] = { name, data: list[0] };
+                    });
+
+                    const out = {
+                        uptime: uptime() * 1000,
+                        processes: Object.entries(results).map(([_, { name, data }]) => (data === null ? {
+                            name: name.endsWith("_process") ? name.slice(0, -8) : name,
+                            status: "offline"
+                        } : {
+                            name: name.endsWith("_process") ? name.slice(0, -8) : name,
+                            status: "online",
+                            cpu: Math.floor(data.cpu * 100000) / 100000,
+                            memory: data.memRss,
+                            started: new Date(data.started.replace(" ", "T")).getTime(),
+                        }))
+                    };
+
+                    if (abort) return;
+                    res.cork(() => {
+                        res.writeHeader("Content-Type", "application/json");
+                        res.end(JSON.stringify(out));
+                    });
+                });
+            }).get("/*", (res, req) => {
                 let abort = false;
                 res.onAborted(() => abort = true);
 
