@@ -29,7 +29,7 @@ export const readableTime = (time: number, ago: boolean = false, seconds: boolea
     }
 
     if (descriptors.length === 0) {
-        descriptors.push(seconds ? '0 seconds' : '0 minutes');
+        descriptors.push(seconds ? 'under a second' : 'under a minute');
     }
 
     const output = descriptors.join(', ');

@@ -2,7 +2,7 @@ import { Box, Card, Center, Collapsible, createListCollection, Flex, For, HStack
 import Navbar from "../components/Navbar"
 import Footer from "../components/Footer";
 import { SelectContent, SelectItem, SelectItemGroup, SelectRoot, SelectTrigger, SelectValueText } from "../components/ui/select";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Avatar } from "../components/ui/avatar";
 import { IoWarning } from "react-icons/io5";
 import { BsThreeDots } from "react-icons/bs";
@@ -12,10 +12,11 @@ import { readableMemory, readableTime } from "../util/parse";
 
 const StatusPage = () => {
     const iconColor = useColorModeValue("#000", "#fff");
+    const [sortValue, setSortValue] = useState("status");
+    const [filterValue, setFilterValue] = useState("");
     const [loading, setLoading] = useState(true);
-    const [ uptime, setUptime ] = useState<number | null>(null);
-    const [ updated, setUpdated ] = useState<number | null>(null);
-    const [ diff, setDiff ] = useState<number | null>(null);
+    const [uptime, setUptime] = useState<number | null>(null);
+    const [timer, setTimer] = useState(0);
     const [processes, setProcesses] = useState<Process[]>([
         {
             image: "",
@@ -89,8 +90,6 @@ const StatusPage = () => {
 
         if (response.ok) {
             const { uptime, processes } = await response.json() as { uptime: number, processes: { name: string, status: string, cpu?: number, memory?: number, started?: number }[] };
-            console.log(uptime);
-            console.log(processes);
             setUptime(uptime);
 
             setProcesses((list) => list.map((p) => {
@@ -100,7 +99,7 @@ const StatusPage = () => {
                     p.status = "unknown";
                     return p;
                 }
-                
+
                 p.status = process.status as State;
 
                 if (process.cpu != undefined && process.memory != undefined && process.started != undefined) {
@@ -114,21 +113,54 @@ const StatusPage = () => {
                 return p;
             }));
         }
-        
+
         setLoading(false);
-        setUpdated(Date.now());
-        setDiff(0);
+        setTimer(0);
     }
+
+    const filteredAndSortedProcesses = useMemo(() => {
+        return processes
+            .filter((process) => {
+                if (filterValue === "") {
+                    return true;
+                }
+
+                if (filterValue === "online" || filterValue === "offline" || filterValue === "disabled") {
+                    return process.status === filterValue;
+                }
+
+                if (filterValue === "games") return process.tag === "game";
+                if (filterValue === "bots") return process.tag === "bot";
+                if (filterValue === "services") return process.tag === "service";
+
+                return true;
+            })
+            .sort((a, b) => {
+                if (sortValue === "status") {
+                    const order = ["online", "unknown", "offline", "disabled"];
+                    return order.indexOf(a.status) - order.indexOf(b.status);
+                }
+
+                if (sortValue === "category") {
+                    const order = ["game", "bot", "service", "other"];
+                    return order.indexOf(a.tag) - order.indexOf(b.tag);
+                }
+
+                if (sortValue === "uptime") {
+                    return (b.data ? b.data.uptime : 0) - (a.data ? a.data.uptime : 0);
+                }
+
+                return a.name.localeCompare(b.name);
+            });
+    }, [processes, filterValue, sortValue]);
 
     useEffect(() => {
         fetchProcesses();
 
-        const fetchInterval = setInterval(fetchProcesses, 30000 * 4);
+        const fetchInterval = setInterval(fetchProcesses, 30000);
 
         const diffInterval = setInterval(() => {
-            if (updated != null) {
-                setDiff(Date.now() - updated);
-            }
+            setTimer(t => t + 1);
         }, 1000);
 
         return () => {
@@ -142,7 +174,13 @@ const StatusPage = () => {
             <Navbar />
             <Flex flexDir={"column"} flex={1} overflowY={"hidden"} position="relative">
                 <Box bg={"bg"} p={4} width={"100%"} display="flex" alignItems="center" borderBottom={"1px solid"} borderColor={"bg.emphasized"} gap={5}>
-                    <SelectRoot collection={sorts} size="sm" flex={{ base: "1", md: "0.3" }} maxW={{ base: "500px", md: "300px" }}>
+                    <SelectRoot
+                        collection={sorts}
+                        size="sm"
+                        flex={{ base: "1", md: "0.3" }}
+                        maxW={{ base: "500px", md: "300px" }}
+                        onValueChange={({ value }) => value.length === 0 ? setSortValue("status") : setSortValue(value[0])}
+                    >
                         <SelectTrigger clearable>
                             <SelectValueText placeholder="Sort by..." />
                         </SelectTrigger>
@@ -162,7 +200,13 @@ const StatusPage = () => {
                             }
                         </SelectContent>
                     </SelectRoot>
-                    <SelectRoot collection={filters} size="sm" flex={{ base: "1", md: "0.3" }} maxW={{ base: "500px", md: "300px" }}>
+                    <SelectRoot
+                        collection={filters}
+                        size="sm"
+                        flex={{ base: "1", md: "0.3" }}
+                        maxW={{ base: "500px", md: "300px" }}
+                        onValueChange={({ value }) => value.length === 0 ? setFilterValue("") : setFilterValue(value[0])}
+                    >
                         <SelectTrigger clearable>
                             <SelectValueText placeholder="Filter by..." />
                         </SelectTrigger>
@@ -189,7 +233,7 @@ const StatusPage = () => {
                 </Box>
                 <Box flex={1} p={5} overflowY={loading ? "hidden" : "auto"}>
                     <SimpleGrid gap={4} minChildWidth={"310px"} maxWidth="1600px" alignItems="flex-start">
-                        <For each={processes}>
+                        <For each={filteredAndSortedProcesses}>
                             {(process, index) => (
                                 <Card.Root variant="elevated" key={index}>
                                     <Card.Body>
@@ -220,7 +264,23 @@ const StatusPage = () => {
                                             </Flex>
                                             <Collapsible.Content mt={2}>
                                                 <Text color="fg.muted">{process.description}</Text>
-                                                <Flex gap={2} mt={2}>
+                                                {process.status === "online" && process.data &&
+                                                    <VStack mt={4} gap={2}>
+                                                        <Flex justifyContent="space-between" w="100%">
+                                                            <Text color="fg" fontSize="sm">CPU</Text>
+                                                            <Text color="fg.subtle" fontSize="sm">{process.data.cpu}%</Text>
+                                                        </Flex>
+                                                        <Flex justifyContent="space-between" w="100%">
+                                                            <Text color="fg" fontSize="sm">Memory</Text>
+                                                            <Text color="fg.subtle" fontSize="sm">{readableMemory(process.data.memory)}</Text>
+                                                        </Flex>
+                                                        <Flex justifyContent="space-between" w="100%">
+                                                            <Text color="fg" fontSize="sm">Uptime</Text>
+                                                            <Text color="fg.subtle" fontSize="sm">{readableTime(process.data.uptime)}</Text>
+                                                        </Flex>
+                                                    </VStack>
+                                                }
+                                                <Flex gap={2} mt={4}>
                                                     <For each={process.locations}>
                                                         {(location, index) => (
                                                             <Button
@@ -241,22 +301,6 @@ const StatusPage = () => {
                                                         )}
                                                     </For>
                                                 </Flex>
-                                                { process.status === "online" && process.data &&
-                                                    <VStack mt={4} gap={2}>
-                                                        <Flex justifyContent="space-between" w="100%">
-                                                            <Text color="fg" fontSize="sm">CPU</Text>
-                                                            <Text color="fg.subtle" fontSize="sm">{process.data.cpu}%</Text>
-                                                        </Flex>
-                                                        <Flex justifyContent="space-between" w="100%">
-                                                            <Text color="fg" fontSize="sm">Memory</Text>
-                                                            <Text color="fg.subtle" fontSize="sm">{readableMemory(process.data.memory)}</Text>
-                                                        </Flex>
-                                                        <Flex justifyContent="space-between" w="100%">
-                                                            <Text color="fg" fontSize="sm">Uptime</Text>
-                                                            <Text color="fg.subtle" fontSize="sm">{readableTime(process.data.uptime)}</Text>
-                                                        </Flex>
-                                                    </VStack>
-                                                }
                                             </Collapsible.Content>
                                         </Collapsible.Root>
                                     </Card.Body>
@@ -273,7 +317,7 @@ const StatusPage = () => {
                     </Box>
                 }
             </Flex>
-            <Footer uptime={`Uptime: ${readableTime(uptime, false, false)}`} live={diff != null && diff < 60000} last={updated != null ? `Updated ${readableTime(diff, true, false)}` : "Loading..."} />
+            <Footer uptime={`Uptime: ${readableTime(uptime, false, false)}`} last={uptime != null ? timer < 60 ? `Live` : `Updated ${readableTime(timer * 1000, true, false)}` : "Loading..."} />
         </Flex >
     )
 }
@@ -305,9 +349,9 @@ const categories = filters.items.reduce(
 
 const sorts = createListCollection({
     items: [
+        { label: "Status", value: "status" },
         { label: "Name", value: "name" },
         { label: "Uptime", value: "uptime" },
-        { label: "Status", value: "status" },
         { label: "Category", value: "category" }
     ],
 });
