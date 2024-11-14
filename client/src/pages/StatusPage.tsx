@@ -15,6 +15,7 @@ import nginxUrl from "./../images/nginx.png";
 import pokerbotUrl from "./../images/pokerbot.jpg";
 import threadblendUrl from "./../images/threadblend.png";
 import websiteUrl from "./../images/website.png";
+import { toaster, Toaster } from "../components/ui/toaster";
 
 const StatusPage = () => {
     const { colorMode } = useColorMode();
@@ -89,43 +90,48 @@ const StatusPage = () => {
             key: "website",
             tag: "other",
             locations: [{ value: "Website", link: "https://status.jomity.com" }, { value: "GitHub", link: "https://github.com/J0m1ty/Website" }],
-            description: "A status page for all services on this VPS.",
+            description: "A status page for all services on my server.",
             status: "unknown",
         }
     ]);
 
-    const fetchProcesses = async () => {
-        const response = await fetch("https://jomity.net/api/status", { method: "GET" });
+    const fetchProcesses = async (): Promise<boolean> => {
+        try {
+            const response = await fetch("https://jomity.net/api/status", { method: "GET" });
 
-        if (response.ok) {
-            const { uptime, processes } = await response.json() as { uptime: number, processes: { name: string, status: string, cpu?: number, memory?: number, started?: number }[] };
-            setUptime(uptime);
-            console.log('fetching processes', processes);
+            if (response.ok) {
+                const { uptime, processes } = await response.json() as { uptime: number, processes: { name: string, status: string, cpu?: number, memory?: number, started?: number }[] };
+                setUptime(uptime);
 
-            setProcesses((list) => list.map((p) => {
-                const process = processes.find((r) => r.name === p.key);
+                setProcesses((list) => list.map((p) => {
+                    const process = processes.find((r) => r.name === p.key);
 
-                if (!process) {
-                    p.status = "unknown";
-                    return p;
-                }
-
-                p.status = process.status as State;
-
-                if (process.cpu != undefined && process.memory != undefined && process.started != undefined) {
-                    p.data = {
-                        cpu: process.cpu,
-                        memory: process.memory,
-                        uptime: Date.now() - process.started
+                    if (!process) {
+                        p.status = "unknown";
+                        return p;
                     }
-                }
 
-                return p;
-            }));
-        }
+                    p.status = process.status as State;
 
-        setLoading(false);
-        setTimer(0);
+                    if (process.cpu != undefined && process.memory != undefined && process.started != undefined) {
+                        p.data = {
+                            cpu: process.cpu,
+                            memory: process.memory,
+                            uptime: Date.now() - process.started
+                        }
+                    }
+
+                    return p;
+                }));
+            }
+
+            setLoading(false);
+            setTimer(0);
+
+            return true;
+        } catch (ignored) { }
+
+        return false;
     }
 
     const filteredAndSortedProcesses = useMemo(() => {
@@ -164,6 +170,22 @@ const StatusPage = () => {
             });
     }, [processes, filterValue, sortValue]);
 
+    const handleRefresh = () => {
+        const promise = fetchProcesses();
+
+        toaster.promise(promise, {
+            success: {
+                title: "Successfully refreshed!"
+            },
+            error: {
+                title: "Failed to fetch data"
+            },
+            loading: {
+                title: "Refreshing..."
+            }
+        });
+    }
+
     useEffect(() => {
         fetchProcesses();
 
@@ -181,7 +203,7 @@ const StatusPage = () => {
 
     return (
         <Flex h={"100%"} flexDir={"column"}>
-            <Navbar />
+            <Navbar refresh={handleRefresh} />
             <Flex flexDir={"column"} flex={1} overflowY={"hidden"} position="relative">
                 <Box bg={"bg"} p={4} width={"100%"} display="flex" alignItems="center" borderBottom={"1px solid"} borderColor={"bg.emphasized"} gap={5}>
                     <SelectRoot
@@ -245,7 +267,13 @@ const StatusPage = () => {
                     <SimpleGrid gap={4} minChildWidth={"310px"} maxWidth="1600px" alignItems="flex-start">
                         <For each={filteredAndSortedProcesses}>
                             {(process, index) => (
-                                <Card.Root variant="elevated" key={index}>
+                                <Card.Root
+                                    variant="elevated"
+                                    key={index}
+                                    borderBottomColor={`${stateToColor(process.status)}/20`}
+                                    borderBottomWidth={2}
+                                    borderBottomRadius={"md"}
+                                >
                                     <Card.Body>
                                         <Collapsible.Root>
                                             <Flex justifyContent={"space-between"} flexDir={"row"} alignItems={"center"} w="100%">
@@ -275,7 +303,7 @@ const StatusPage = () => {
                                                     </IconButton>
                                                 </Collapsible.Trigger>
                                             </Flex>
-                                            <Collapsible.Content mt={2}>
+                                            <Collapsible.Content mt={4}>
                                                 <Text color="fg.muted">{process.description}</Text>
                                                 {process.status === "online" && process.data &&
                                                     <VStack mt={4} gap={2}>
@@ -331,6 +359,7 @@ const StatusPage = () => {
                 }
             </Flex>
             <Footer uptime={`Uptime: ${readableTime(uptime, false, false)}`} last={uptime != null ? timer < 60 ? `Live` : `Updated ${readableTime(timer * 1000, true, false)}` : "Loading..."} />
+            <Toaster />
         </Flex >
     )
 }
