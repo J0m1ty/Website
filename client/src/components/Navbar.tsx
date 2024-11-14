@@ -3,8 +3,9 @@ import { ColorModeButton, useColorModeValue } from "../components/ui/color-mode"
 import { MenuContent, MenuRoot, MenuTrigger } from "../components/ui/menu";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { Link } from "react-router-dom";
+import { toaster } from "./ui/toaster";
 
-const Navbar = () => {
+const Navbar = ({ refresh }: { refresh: () => void }) => {
     const iconColor = useColorModeValue("#000", "#fff");
 
     return (
@@ -54,7 +55,7 @@ const Navbar = () => {
                                     <Link to="/status">Status</Link>
                                 </MenuItem>
                                 <MenuItem
-                                    value="login"
+                                    value="refresh"
                                     color={"green.fg"}
                                     _hover={{
                                         bg: "green.solid",
@@ -62,8 +63,9 @@ const Navbar = () => {
                                         transition: "all 0.2s",
                                         cursor: "pointer"
                                     }}
+                                    onClick={refresh}
                                 >
-                                    Login
+                                    Refresh
                                 </MenuItem>
                             </MenuContent>
                         </MenuRoot>
