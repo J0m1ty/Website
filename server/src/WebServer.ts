@@ -72,7 +72,7 @@ export class WebServer {
 
                 processes().then((data) => {
                     const search = [
-                        { name: "minecraft", term: "minecraft_process" },
+                        { name: "threadblend", term: "threadblend_process" },
                         { name: "website", term: "website_process" },
                         { name: "nginx", term: "nginx" },
                     ] as const;
@@ -91,7 +91,7 @@ export class WebServer {
                         if (filtered.length > 0) list = filtered;
                         
                         // sort by cpu usage
-                        list.sort((a, b) => compare(b.cpu, a.cpu));
+                        list.sort((a, b) => compare(b.cpu, a.cpu) * 10 + compare(b.memRss, a.memRss));
                         results[term] = { name, data: list[0] };
                     });
 
