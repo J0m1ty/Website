@@ -72,6 +72,7 @@ export class WebServer {
 
                 processes().then((data) => {
                     const search = [
+                        { name: "armadahex", term: "auth_process" },
                         { name: "threadblend", term: "threadblend_process" },
                         { name: "website", term: "website_process" },
                         { name: "nginx", term: "nginx" },
