@@ -69,7 +69,7 @@ const StatusPage = () => {
         {
             image: armadahexUrl,
             name: "Armadahex Auth",
-            key: "armadahex-auth",
+            key: "armadahex",
             tag: "service",
             locations: [{ value: "GitHub", link: "https://github.com/J0m1ty/ArmadahexAuth" }],
             description: "A custom authentication service for Armadahex.",
