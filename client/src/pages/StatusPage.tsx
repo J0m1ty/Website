@@ -107,7 +107,7 @@ const StatusPage = () => {
                     const process = processes.find((r) => r.name === p.key);
 
                     if (!process) {
-                        p.status = "unknown";
+                        p.status = "disabled";
                         return p;
                     }
 

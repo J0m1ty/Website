@@ -131,7 +131,6 @@ export class WebServer {
 
                     if (err || !stats.isFile()) {
                         serveFile(res, join(this.root, "index.html"), "text/html");
-                        return;
                     } else {
                         serveFile(res, filePath, getContentType(url), encoding);
                     }
