@@ -8,14 +8,14 @@ import { BsThreeDots } from "react-icons/bs";
 import { useColorMode, useColorModeValue } from "../components/ui/color-mode";
 import { Button } from "../components/ui/button";
 import { readableMemory, readableTime } from "../util/parse";
-import armadahexUrl from "./../images/armadahex.png";
-import mindustryUrl from "./../images/mindustry.png";
-import minecraftUrl from "./../images/minecraft.png";
-import nginxUrl from "./../images/nginx.png";
-import pokerbotUrl from "./../images/pokerbot.jpg";
-import threadblendUrl from "./../images/threadblend.png";
-import websiteUrl from "./../images/website.png";
 import { toaster, Toaster } from "../components/ui/toaster";
+import armadahexUrl from "./../images/armadahex.webp";
+import mindustryUrl from "./../images/mindustry.webp";
+import minecraftUrl from "./../images/minecraft.webp";
+import nginxUrl from "./../images/nginx.webp";
+import pokerbotUrl from "./../images/pokerbot.webp";
+import threadblendUrl from "./../images/threadblend.webp";
+import websiteUrl from "./../images/website.webp";
 
 const StatusPage = () => {
     const { colorMode } = useColorMode();
