@@ -87,13 +87,22 @@ export class WebServer {
                             return;
                         }
 
-                        // filter out sleeping
+                        // find main process
                         let filtered = list.filter((p) => p.state !== "sleeping");
-                        if (filtered.length > 0) list = filtered;
-                        
-                        // sort by cpu usage
-                        list.sort((a, b) => compare(b.cpu, a.cpu) * 10 + compare(b.memRss, a.memRss));
-                        results[term] = { name, data: list[0] };
+                        let main = (filtered.length > 0 ? filtered : list).sort((a, b) => compare(b.cpu, a.cpu) * 10 + compare(b.memRss, a.memRss));
+
+                        // find sum of all matching processes (cpu and mem)
+                        let cpu = list.reduce((acc, p) => acc + p.cpu, 0);
+                        let memRss = list.reduce((acc, p) => acc + p.memRss, 0);
+
+                        results[term] = { 
+                            name,
+                            data: {
+                                ...main[0],
+                                cpu,
+                                memRss,
+                            }
+                        }
                     });
 
                     const out = {
