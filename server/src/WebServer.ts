@@ -72,6 +72,7 @@ export class WebServer {
 
                 processes().then((data) => {
                     const search = [
+                        { name: "minecraft", term: "minecraft_process" },
                         { name: "armadahex", term: "auth_process" },
                         { name: "threadblend", term: "threadblend_process" },
                         { name: "website", term: "website_process" },
@@ -80,7 +81,7 @@ export class WebServer {
 
                     const results: { [ key: string ]: { name: string, data: typeof data.list[0] | null } } = {};
                     search.forEach(({ name, term }) => {
-                        let list = data.list.filter((p) => p.command.toLowerCase().includes(term) || p.params.toLowerCase().includes(term));
+                        let list = data.list.filter((p) => p.command.toLowerCase().includes(term) || p.params.toLowerCase().includes(term) || p.name.toLowerCase().includes(term));
 
                         if (list.length === 0) {
                             results[term] = { name, data: null };
