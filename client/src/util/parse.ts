@@ -35,13 +35,3 @@ export const readableTime = (time: number, ago: boolean = false, seconds: boolea
     const output = descriptors.join(', ');
     return ago ? `${output} ago` : output;
 }
-
-export const readableMemory = (bytes: number): string => {
-    const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-    let unitIndex = 0;
-    while (bytes >= 1024 && unitIndex < units.length - 1) {
-        bytes /= 1024;
-        unitIndex++;
-    }
-    return `${bytes.toFixed(2)} ${units[unitIndex]}`;
-}

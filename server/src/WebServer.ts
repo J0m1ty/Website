@@ -1,8 +1,8 @@
 import { existsSync, readFileSync, stat } from "fs";
 import { join } from "path";
 import { App, HttpResponse } from "uWebSockets.js";
-import { processes } from "systeminformation";
 import { uptime } from "os";
+import { processes } from "./processes.js";
 
 export const serveFile = (res: HttpResponse, filePath: string, contentType: string, encoding?: boolean) => {
     res.cork(() => {
@@ -69,54 +69,25 @@ export class WebServer {
                 // set CORS
                 res.writeHeader("Access-Control-Allow-Origin", "*");
                 res.writeHeader("Access-Control-Allow-Methods", "GET");
-
-                processes().then((data) => {
-                    const search = [
-                        { name: "minecraft", term: "minecraft_process" },
-                        { name: "armadahex", term: "auth_process" },
-                        { name: "threadblend", term: "threadblend_process" },
-                        { name: "website", term: "website_process" },
-                        { name: "nginx", term: "nginx" },
-                    ] as const;
-
-                    const results: { [ key: string ]: { name: string, data: typeof data.list[0] | null } } = {};
-                    search.forEach(({ name, term }) => {
-                        let list = data.list.filter((p) => p.command.toLowerCase().includes(term) || p.params.toLowerCase().includes(term) || p.name.toLowerCase().includes(term));
-
-                        if (list.length === 0) {
-                            results[term] = { name, data: null };
-                            return;
-                        }
-
-                        // find main process
-                        let filtered = list.filter((p) => p.state !== "sleeping");
-                        let main = (filtered.length > 0 ? filtered : list).sort((a, b) => compare(b.cpu, a.cpu) * 10 + compare(b.memRss, a.memRss));
-
-                        // find sum of all matching processes (cpu and mem)
-                        let cpu = list.reduce((acc, p) => acc + p.cpu, 0);
-                        let memRss = list.reduce((acc, p) => acc + p.memRss, 0);
-
-                        results[term] = { 
-                            name,
-                            data: {
-                                ...main[0],
-                                cpu,
-                                memRss,
-                            }
-                        }
-                    });
-
+                
+                processes([
+                    { name: "minecraft", search: "minecraft_process" },
+                    { name: "armadahex", search: "auth_process" },
+                    { name: "threadblend", search: "threadblend_process" },
+                    { name: "website", search: "website_process" },
+                    { name: "nginx", search: "nginx" },
+                ]).then((list) => {
                     const out = {
                         uptime: uptime() * 1000,
-                        processes: Object.entries(results).map(([_, { name, data }]) => (data === null ? {
-                            name: name.endsWith("_process") ? name.slice(0, -8) : name,
+                        processes: Object.entries(list).map(([key, value]) => (value === undefined ? {
+                            name: key,
                             status: "offline"
                         } : {
-                            name: name.endsWith("_process") ? name.slice(0, -8) : name,
+                            name: key,
                             status: "online",
-                            cpu: Math.floor(data.cpu * 100000) / 100000,
-                            memory: data.memRss,
-                            started: new Date(data.started.replace(" ", "T")).getTime(),
+                            cpu: Math.floor(value.cpu * 100) / 100,
+                            memory: Math.floor(value.memory * 100) / 100,
+                            uptime: value.uptime
                         }))
                     };
 

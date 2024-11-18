@@ -7,7 +7,7 @@ import { IoWarning } from "react-icons/io5";
 import { BsThreeDots } from "react-icons/bs";
 import { useColorMode, useColorModeValue } from "../components/ui/color-mode";
 import { Button } from "../components/ui/button";
-import { readableMemory, readableTime } from "../util/parse";
+import { readableTime } from "../util/parse";
 import { toaster, Toaster } from "../components/ui/toaster";
 import armadahexUrl from "./../images/armadahex.webp";
 import mindustryUrl from "./../images/mindustry.webp";
@@ -100,7 +100,7 @@ const StatusPage = () => {
             const response = await fetch("https://jomity.net/api/status", { method: "GET" });
 
             if (response.ok) {
-                const { uptime, processes } = await response.json() as { uptime: number, processes: { name: string, status: string, cpu?: number, memory?: number, started?: number }[] };
+                const { uptime, processes } = await response.json() as { uptime: number, processes: { name: string, status: string, cpu?: number, memory?: number, uptime?: number }[] };
                 setUptime(uptime);
 
                 setProcesses((list) => list.map((p) => {
@@ -113,11 +113,11 @@ const StatusPage = () => {
 
                     p.status = process.status as State;
 
-                    if (process.cpu != undefined && process.memory != undefined && process.started != undefined) {
+                    if (process.cpu != undefined && process.memory != undefined && process.uptime != undefined) {
                         p.data = {
                             cpu: process.cpu,
                             memory: process.memory,
-                            uptime: Date.now() - process.started
+                            uptime: process.uptime
                         }
                     }
 
@@ -313,7 +313,7 @@ const StatusPage = () => {
                                                         </Flex>
                                                         <Flex justifyContent="space-between" w="100%">
                                                             <Text color="fg" fontSize="sm">Memory</Text>
-                                                            <Text color="fg.subtle" fontSize="sm">{readableMemory(process.data.memory)}</Text>
+                                                            <Text color="fg.subtle" fontSize="sm">{process.data.memory}%</Text>
                                                         </Flex>
                                                         <Flex justifyContent="space-between" w="100%">
                                                             <Text color="fg" fontSize="sm">Uptime</Text>
