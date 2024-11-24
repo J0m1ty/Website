@@ -32,8 +32,8 @@ const StatusPage = () => {
             key: "minecraft",
             tag: "game",
             port: 25565,
-            locations: [],
-            description: "A survival Minecraft server for friends. Invite only.",
+            locations: [{ value: "World Map", link: "https://map.jomity.net" }],
+            description: "A survival Minecraft server for friends. Join at mc.jomity.net.",
             status: "unknown",
         },
         {
