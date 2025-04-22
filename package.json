@@ -7,6 +7,7 @@
     "build": "pnpm -r build",
     "start": "pnpm -r start",
     "dev": "pnpm -r dev",
-    "watch": "pnpm -r watch"
+    "watch": "pnpm -r watch",
+    "serve": "pm2 startOrReload ecosystem.config.cjs --env production"
   }
 }
