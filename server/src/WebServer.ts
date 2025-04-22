@@ -1,8 +1,6 @@
 import { existsSync, readFileSync, stat } from "fs";
 import { join } from "path";
 import { App, HttpResponse } from "uWebSockets.js";
-import { uptime } from "os";
-import { processes } from "./processes.js";
 
 export const serveFile = (res: HttpResponse, filePath: string, contentType: string, encoding?: boolean) => {
     res.cork(() => {
@@ -62,42 +60,7 @@ export class WebServer {
         await new Promise((resolve, reject) => {
             const server = App();
 
-            server.get("/api/status", (res) => {
-                let abort = false;
-                res.onAborted(() => abort = true);
-
-                // set CORS
-                res.writeHeader("Access-Control-Allow-Origin", "*");
-                res.writeHeader("Access-Control-Allow-Methods", "GET");
-                
-                processes([
-                    { name: "minecraft", search: "minecraft_process" },
-                    { name: "armadahex", search: "auth_process" },
-                    { name: "threadblend", search: "threadblend_process" },
-                    { name: "website", search: "website_process" },
-                    { name: "nginx", search: "nginx" },
-                ]).then((list) => {
-                    const out = {
-                        uptime: uptime() * 1000,
-                        processes: Object.entries(list).map(([key, value]) => (value === undefined ? {
-                            name: key,
-                            status: "offline"
-                        } : {
-                            name: key,
-                            status: "online",
-                            cpu: Math.floor(value.cpu * 100) / 100,
-                            memory: Math.floor(value.memory * 100) / 100,
-                            uptime: value.uptime
-                        }))
-                    };
-
-                    if (abort) return;
-                    res.cork(() => {
-                        res.writeHeader("Content-Type", "application/json");
-                        res.end(JSON.stringify(out));
-                    });
-                });
-            }).get("/*", (res, req) => {
+            server.get("/*", (res, req) => {
                 let abort = false;
                 res.onAborted(() => abort = true);
 
