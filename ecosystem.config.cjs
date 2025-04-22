@@ -1,7 +1,7 @@
-export default {
+module.exports = {
     apps: [{
-        name: 'landing',
-        script: 'pnpm',
+        name: 'landing-page',
+        script: 'npm',
         args: 'start',
         cwd: './server',
         watch: false,
