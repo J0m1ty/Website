@@ -80,6 +80,23 @@ const Overlay = () => {
                     >
                         Spotify
                     </Button>
+                    <Button
+                        bg={"#00ff00"}
+                        _hover={{
+                            bg: "#00ff00",
+                            opacity: 0.7,
+                        }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            window.open(
+                                "https://discord.com/users/544963690185752576",
+                                "_blank"
+                            );
+                        }}
+                    >
+                        Discord
+                    </Button>
                 </Stack>
             </Stack>
         </Box>
