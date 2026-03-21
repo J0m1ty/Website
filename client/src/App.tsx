@@ -1,8 +1,8 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Loading from './pages/Loading';
 import { lazy, Suspense } from 'react';
+import Home from './pages/Home';
 
-const Home = lazy(() => import('./pages/Home'));
 const Error = lazy(() => import('./pages/Error'));
 
 const App = () => {
