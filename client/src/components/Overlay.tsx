@@ -8,7 +8,7 @@ export default function Overlay() {
             id="noSelect"
         >
             <div className="flex flex-col items-center gap-5">
-                <div className="flex h-50 w-full items-center justify-center bg-black/50 lg:h-64">
+                <div className="flex h-50 w-full items-center justify-center lg:h-64">
                     <p className="text-[75px] text-white md:text-[100px] lg:text-[120px]">
                         jomity.net
                     </p>
