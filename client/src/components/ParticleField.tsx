@@ -1,10 +1,9 @@
-import { Box } from "@chakra-ui/react";
 import { useEffect, useRef } from "react";
 import { Application, Container } from "pixi.js";
 import { constrain, map, random } from "../util/math";
 import { isLowEndDevice, Particle } from "../util/Particle";
 
-const ParticleField = () => {
+export default function ParticleField() {
     const mouse = useRef({ x: 0, y: 0, click: false });
     const appRef = useRef<Application | null>(null);
     const containerRef = useRef<Container | null>(null);
@@ -136,8 +135,6 @@ const ParticleField = () => {
     }, []);
 
     return (
-        <Box ref={ref} w="100vw" h="100vh" />
+        <div className="h-screen w-screen" ref={ref} />
     );
-}
-
-export default ParticleField;
+};
