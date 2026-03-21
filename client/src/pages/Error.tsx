@@ -1,4 +1,3 @@
-import { Card, Center, Code, Heading, Link, Stack, Text } from "@chakra-ui/react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const Error = () => {
@@ -14,19 +13,27 @@ const Error = () => {
     }
 
     return (
-        <Center height="100vh">
-            <Card.Root m={5}>
-                <Stack dir="column" gap={5} divideY={"2px"}>
-                    <Card.Header textAlign={"center"}>
-                        404 Page Not Found
-                    </Card.Header>
-                    <Card.Body>
-                        <Text>The requested page at <Code>{location.pathname.length < 20 ? location.pathname : location.pathname.substring(0, 17) + "..."}</Code> does not exist.</Text>
-                        <Link onClick={goBack} color={"green.500"} >Go back to the previous page.</Link>
-                    </Card.Body>
-                </Stack>
-            </Card.Root>
-        </Center>
+        <div className="flex min-h-screen items-center justify-center px-5">
+            <section className="w-full max-w-xl rounded-lg border border-zinc-300 bg-white/90 p-6 text-zinc-900 shadow-xl">
+                <h1 className="border-b border-zinc-300 pb-4 text-center text-2xl font-bold">404 Page Not Found</h1>
+                <div className="pt-4 text-base">
+                    <p>
+                        The requested page at{' '}
+                        <code className="rounded bg-zinc-200 px-1 py-0.5">
+                            {location.pathname.length < 20 ? location.pathname : location.pathname.substring(0, 17) + "..."}
+                        </code>{' '}
+                        does not exist.
+                    </p>
+                    <button
+                        className="mt-4 text-green-700 underline underline-offset-2"
+                        onClick={goBack}
+                        type="button"
+                    >
+                        Go back to the previous page.
+                    </button>
+                </div>
+            </section>
+        </div>
     );
 }
 

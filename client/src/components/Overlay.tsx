@@ -1,46 +1,21 @@
-import { Box, Stack, Text, useBreakpointValue } from "@chakra-ui/react";
-import { Button } from "./ui/button";
+const buttonClass =
+    "rounded-md bg-lime-400 px-5 py-2 text-base font-semibold text-black transition-opacity hover:opacity-70";
 
-const Overlay = () => {
-    const fontSize = useBreakpointValue({ base: "75px", md: "100px", lg: "120px" });
-    const bgHeight = useBreakpointValue({ base: "200px", lg: "250px" });
-
+export default function Overlay() {
     return (
-        <Box
-            position="fixed"
-            top={0}
-            left={0}
-            color="white"
-            textAlign={"center"}
-            width="100%"
-            height={"100%"}
-            display={"flex"}
-            flexDirection={"column"}
-            justifyContent={"center"}
-            overflow={"hidden"}
-            id={"noSelect"}
+        <div
+            className="fixed left-0 top-0 flex h-full w-full flex-col justify-center overflow-hidden text-center text-white"
+            id="noSelect"
         >
-            <Stack display="flex" flexDirection="column" alignItems="center" gap={5}>
-                <Box
-                    bg="rgba(0,0,0,0.5)"
-                    height={bgHeight}
-                    width={"100%"}
-                    textAlign={"center"}
-                    justifyContent={"center"}
-                    display={"flex"}
-                    alignItems={"center"}
-                >
-                    <Text fontSize={fontSize} color="white">
+            <div className="flex flex-col items-center gap-5">
+                <div className="flex h-50 w-full items-center justify-center bg-black/50 lg:h-64">
+                    <p className="text-[75px] text-white md:text-[100px] lg:text-[120px]">
                         jomity.net
-                    </Text>
-                </Box>
-                <Stack display="flex" flexDirection="row" gap={5}>
-                    <Button
-                        bg={"#00ff00"}
-                        _hover={{
-                            bg: "#00ff00",
-                            opacity: 0.7,
-                        }}
+                    </p>
+                </div>
+                <div className="flex flex-row flex-wrap items-center justify-center gap-5 px-4">
+                    <button
+                        className={buttonClass}
                         onClick={(e) => {
                             e.stopPropagation();
                             e.preventDefault();
@@ -48,13 +23,9 @@ const Overlay = () => {
                         }}
                     >
                         GitHub
-                    </Button>
-                    <Button
-                        bg={"#00ff00"}
-                        _hover={{
-                            bg: "#00ff00",
-                            opacity: 0.7,
-                        }}
+                    </button>
+                    <button
+                        className={buttonClass}
                         onClick={(e) => {
                             e.stopPropagation();
                             e.preventDefault();
@@ -62,13 +33,9 @@ const Overlay = () => {
                         }}
                     >
                         LinkedIn
-                    </Button>
-                    <Button
-                        bg={"#00ff00"}
-                        _hover={{
-                            bg: "#00ff00",
-                            opacity: 0.7,
-                        }}
+                    </button>
+                    <button
+                        className={buttonClass}
                         onClick={(e) => {
                             e.stopPropagation();
                             e.preventDefault();
@@ -79,13 +46,9 @@ const Overlay = () => {
                         }}
                     >
                         Spotify
-                    </Button>
-                    <Button
-                        bg={"#00ff00"}
-                        _hover={{
-                            bg: "#00ff00",
-                            opacity: 0.7,
-                        }}
+                    </button>
+                    <button
+                        className={buttonClass}
                         onClick={(e) => {
                             e.stopPropagation();
                             e.preventDefault();
@@ -96,11 +59,9 @@ const Overlay = () => {
                         }}
                     >
                         Discord
-                    </Button>
-                </Stack>
-            </Stack>
-        </Box>
+                    </button>
+                </div>
+            </div>
+        </div>
     )
-}
-
-export default Overlay;
+};
