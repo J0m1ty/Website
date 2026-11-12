@@ -2,7 +2,9 @@ packages:
   - server/
   - client/
 
-ignoredBuiltDependencies:
-  - '@swc/core'
-  - core-js
-  - esbuild
+# pnpm 11+ only skips dependency build scripts listed here with false
+# (ignoredBuiltDependencies is no longer enough; installs fail otherwise).
+allowBuilds:
+  '@swc/core': false
+  core-js: false
+  esbuild: false
