@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, stat } from "fs";
-import { join } from "path";
+import { join, sep } from "path";
 import { App, HttpResponse } from "uWebSockets.js";
 
 export const serveFile = (res: HttpResponse, filePath: string, contentType: string, encoding?: boolean) => {
@@ -66,6 +66,8 @@ export class WebServer {
 
                 let url = req.getUrl();
                 let filePath = join(this.root, url);
+                // never serve anything outside root (e.g. /../../etc/passwd)
+                const inside = filePath.startsWith(this.root + sep);
                 const encodingHeader = req.getHeader("accept-encoding");
 
                 let encoding = encodingHeader.includes("br") && existsSync(filePath + ".br");
@@ -73,7 +75,7 @@ export class WebServer {
                 stat(filePath, (err, stats) => {
                     if (abort) return;
 
-                    if (err || !stats.isFile()) {
+                    if (!inside || err || !stats.isFile()) {
                         serveFile(res, join(this.root, "index.html"), "text/html");
                     } else {
                         serveFile(res, filePath, getContentType(url), encoding);
