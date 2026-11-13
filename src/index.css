@@ -24,3 +24,128 @@ html,
     -moz-user-select: none;
     user-select: none;
 }
+/* ── Character grid (src/grid) ───────────────────────────────────────────── */
+
+.grid-canvas {
+    position: fixed;
+    left: 0;
+    top: 0;
+    background: #000;
+}
+
+/* The DOM layer: same origin and cell size as the canvas. Everything in it is
+   unselectable chrome unless a panel opts back in. */
+.grid-root {
+    position: fixed;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: none;
+    user-select: none;
+    -webkit-user-select: none;
+    font-size: var(--fs);
+    line-height: var(--ch);
+    letter-spacing: var(--ls);
+    /* Text colors are set through --ink so canvas-drawn (mirrored) text can read them. */
+    --ink: #a6e8b6;
+    color: var(--ink);
+}
+
+.grid-root ::selection {
+    background: #1d8a46;
+    color: #f0fff3;
+}
+
+.grid-root a {
+    --ink: #72ffa3;
+    color: var(--ink);
+    text-decoration: underline;
+}
+
+.grid-root a:hover {
+    color: #000;
+    background: #72ffa3;
+    text-decoration: none;
+}
+
+.grid-root .dim {
+    --ink: #4f9a66;
+    color: var(--ink);
+}
+
+/* Rain cards: the canvas draws the text (lit by the rain), so the HTML copy is
+   invisible but still there to select, click and read aloud. */
+.grid-root .panel-rain,
+.grid-root .panel-rain * {
+    color: transparent;
+}
+
+.grid-root .panel-rain ::selection {
+    color: transparent;
+    background: rgb(29 138 70 / 0.45);
+}
+
+.grid-root .panel-rain a {
+    text-decoration-color: var(--ink);
+}
+
+.grid-root .panel-rain a:hover {
+    color: transparent;
+    background: rgb(114 255 163 / 0.2);
+    text-decoration: underline;
+    text-decoration-color: var(--ink);
+}
+
+/* One cell of border all round, plus one cell of breathing room each side. */
+.panel {
+    padding: var(--ch) calc(var(--cw) * 2);
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+/* Vertical spacing always comes in whole rows. */
+.panel > * + *,
+.panel .spaced {
+    margin-top: var(--ch);
+}
+
+.grid-demo {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ch);
+    padding: var(--ch) 0;
+}
+
+.grid-demo-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--ch) calc(var(--cw) * 2);
+}
+
+/* Splash: covers the page until entered; everything visible is on the canvas. */
+.grid-splash {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--ch) * 2);
+    cursor: pointer;
+    z-index: 1;
+}
+
+.grid-prompt {
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+.grid-prompt:focus-visible {
+    outline: 1px dashed #2dbe5f;
+    outline-offset: 2px;
+}
