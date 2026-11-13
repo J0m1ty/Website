@@ -96,7 +96,7 @@ const DEG = Math.PI / 180;
 const [, ba, bb] = toLab(BASE.border);
 const BASE_HUE = Math.atan2(bb, ba);
 
-function derive(theme: Theme, light: boolean) {
+function derive(theme: Theme, light: boolean, depth = 0.95) {
     const hue = HUES[theme];
     const shift = hue === null ? 0 : hue * DEG - BASE_HUE;
     const grey = theme === 'mono';
@@ -107,7 +107,7 @@ function derive(theme: Theme, light: boolean) {
         // Light mode: flip lightness, curved so the dark end (page, card
         // fill, resting rain) stays close to paper and doesn't become grey
         // slabs, while text still lands dark. Black becomes #fafafa.
-        const L2 = light ? 0.985 - 0.95 * L ** 1.6 : L;
+        const L2 = light ? 0.985 - depth * L ** 1.6 : L;
         return fromLch(L2, C, Math.atan2(b, a) + shift);
     };
 }
@@ -116,7 +116,19 @@ function build(theme: Theme, light: boolean): Palette {
     const f = derive(theme, light);
     const out = {} as Record<string, number>;
     for (const [k, v] of Object.entries(BASE)) out[k] = f(v);
-    return { ...(out as typeof BASE), rain: BASE_RAIN.map(f), shimmer: BASE_SHIMMER.map(f) };
+    // Light mode: rain only goes a third as deep, so streams are a soft wash
+    // behind the cards rather than dark ink all over the page.
+    const soft = derive(theme, light, light ? 0.4 : 0.95);
+    out.rainHead = soft(BASE.rainHead);
+    if (light) {
+        // Paper: the page a touch grey, cards near white, both faintly tinted
+        // with the theme's hue. (A flipped dark fill came out as tinted slabs.)
+        const h = (HUES[theme] ?? null) === null ? BASE_HUE : HUES[theme]! * DEG;
+        const tint = theme === 'mono' ? 0 : 0.008;
+        out.bg = fromLch(0.955, tint, h);
+        out.fill = fromLch(0.995, tint / 2, h);
+    }
+    return { ...(out as typeof BASE), rain: BASE_RAIN.map(soft), shimmer: BASE_SHIMMER.map(f) };
 }
 
 // ── The live palette ──────────────────────────────────────────────────────

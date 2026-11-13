@@ -108,9 +108,10 @@ html,
     text-decoration-color: var(--ink);
 }
 
-/* One cell of border all round, plus one cell of breathing room each side. */
+/* One cell of border all round, then breathing room: a blank row above and
+   below the text, three blank columns either side. */
 .panel {
-    padding: var(--ch) calc(var(--cw) * 2);
+    padding: calc(var(--ch) * 2) calc(var(--cw) * 4);
     user-select: text;
     -webkit-user-select: text;
 }

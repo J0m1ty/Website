@@ -23,7 +23,8 @@ export const OPTIONS: { [K in keyof Settings]: readonly Settings[K][] } = {
     motion: ['auto', 'on', 'off'],
 };
 
-const DEFAULTS: Settings = { motion: 'auto', mode: 'auto', theme: 'green' };
+// Motion off by default: the plain background reads best. Rain is opt-in.
+const DEFAULTS: Settings = { motion: 'off', mode: 'auto', theme: 'green' };
 // index.html reads this key too, to paint the right background before any script loads.
 const KEY = 'jomity.grid.settings';
 
