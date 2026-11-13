@@ -116,19 +116,29 @@ function build(theme: Theme, light: boolean): Palette {
     const f = derive(theme, light);
     const out = {} as Record<string, number>;
     for (const [k, v] of Object.entries(BASE)) out[k] = f(v);
-    // Light mode: rain only goes a third as deep, so streams are a soft wash
-    // behind the cards rather than dark ink all over the page.
-    const soft = derive(theme, light, light ? 0.4 : 0.95);
-    out.rainHead = soft(BASE.rainHead);
-    if (light) {
-        // Paper: the page a touch grey, cards near white, both faintly tinted
-        // with the theme's hue. (A flipped dark fill came out as tinted slabs.)
-        const h = (HUES[theme] ?? null) === null ? BASE_HUE : HUES[theme]! * DEG;
-        const tint = theme === 'mono' ? 0 : 0.008;
-        out.bg = fromLch(0.955, tint, h);
-        out.fill = fromLch(0.995, tint / 2, h);
-    }
-    return { ...(out as typeof BASE), rain: BASE_RAIN.map(soft), shimmer: BASE_SHIMMER.map(f) };
+    if (!light) return { ...(out as typeof BASE), rain: BASE_RAIN.map(f), shimmer: BASE_SHIMMER.map(f) };
+
+    // Light mode adjustments.
+    const h = HUES[theme] === null ? BASE_HUE : HUES[theme]! * DEG;
+    const mono = theme === 'mono';
+    // Paper: the page a touch grey, cards near white, both faintly tinted
+    // with the theme's hue. (A flipped dark fill came out as tinted slabs.)
+    out.bg = fromLch(0.955, mono ? 0 : 0.008, h);
+    out.fill = fromLch(0.995, mono ? 0 : 0.004, h);
+    // Rain and the decode transitions: the resting field is the page itself
+    // (invisible), and streams build to the theme's most vivid color rather
+    // than flipping to near-black. (fromLch gives up chroma only as far as the
+    // color needs to fit, so asking for a lot gets the most there is.)
+    const vivid = fromLch(mono ? 0.45 : 0.68, mono ? 0 : 0.4, h);
+    const rain = BASE_RAIN.map((_, i) => mix(out.bg, vivid, Math.pow(i / (BASE_RAIN.length - 1), 1.7)));
+    out.rainHead = vivid;
+    out.revealHead = vivid;
+    out.revealTail = mix(out.bg, vivid, 0.15);
+    // The logo and the enter prompt are solid near-black: the shimmer and the
+    // pulse ran from dark green to black, which read as muddy blotches on paper.
+    const black = f(BASE_SHIMMER[7]);
+    out.promptLow = out.promptHigh = black;
+    return { ...(out as typeof BASE), rain, shimmer: BASE_SHIMMER.map(() => black) };
 }
 
 // ── The live palette ──────────────────────────────────────────────────────

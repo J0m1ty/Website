@@ -2,12 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { useGrid } from '../grid/context';
 import { Banner, GridRoot, Panel, Prompt, StatusLine } from '../grid/react';
 
-// /grid?nosplash skips the splash and boots the page instead.
-const skipSplash = new URLSearchParams(window.location.search).has('nosplash');
 
 export default function GridDemo() {
     return (
-        <GridRoot boot={skipSplash}>
+        <GridRoot boot={false}>
             <Demo />
         </GridRoot>
     );
@@ -20,7 +18,7 @@ export default function GridDemo() {
  */
 function Demo() {
     const { scene } = useGrid();
-    const [phase, setPhase] = useState<'splash' | 'transition' | 'page'>(skipSplash ? 'page' : 'splash');
+    const [phase, setPhase] = useState<'splash' | 'transition' | 'page'>('splash');
     const entered = useRef(false);
     const enter = () => {
         if (entered.current) return;   // a click on the prompt also reaches the splash

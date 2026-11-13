@@ -5,8 +5,8 @@
 import { useSyncExternalStore } from 'react';
 import { setTheme, THEMES, type Theme } from './palette';
 
-/** auto follows the OS (prefers-reduced-motion); on and off override it. */
-export type Motion = 'auto' | 'on' | 'off';
+/** off: nothing moves. low: logo shimmer and transitions, plain background. rain: low plus the rain. */
+export type Motion = 'off' | 'low' | 'rain';
 /** auto follows the OS (prefers-color-scheme). */
 export type Mode = 'auto' | 'dark' | 'light';
 
@@ -20,11 +20,15 @@ export interface Settings {
 export const OPTIONS: { [K in keyof Settings]: readonly Settings[K][] } = {
     theme: THEMES,
     mode: ['auto', 'dark', 'light'],
-    motion: ['auto', 'on', 'off'],
+    motion: ['off', 'low', 'rain'],
 };
 
-// Motion off by default: the plain background reads best. Rain is opt-in.
-const DEFAULTS: Settings = { motion: 'off', mode: 'auto', theme: 'green' };
+const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+const lightQuery = window.matchMedia('(prefers-color-scheme: light)');
+
+// Low motion by default (the plain background reads best; rain is opt-in),
+// or off for anyone whose OS asks for reduced motion.
+const DEFAULTS: Settings = { motion: motionQuery.matches ? 'off' : 'low', mode: 'auto', theme: 'green' };
 // index.html reads this key too, to paint the right background before any script loads.
 const KEY = 'jomity.grid.settings';
 
@@ -65,15 +69,13 @@ export function subscribe(fn: () => void) {
 
 export const useSettings = () => useSyncExternalStore(subscribe, getSettings);
 
-const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-const lightQuery = window.matchMedia('(prefers-color-scheme: light)');
-
-/** True when effects should hold still: the setting, or the OS when it's auto. */
-export const reducedMotion = () => state.motion === 'off' || (state.motion === 'auto' && motionQuery.matches);
+/** True when nothing should move: no shimmer, pulses or transitions. */
+export const reducedMotion = () => state.motion === 'off';
+/** Whether the rain falls; otherwise the background is plain. */
+export const rainOn = () => state.motion === 'rain';
 export const lightMode = () => state.mode === 'light' || (state.mode === 'auto' && lightQuery.matches);
 
 const applyTheme = () => setTheme(state.theme, lightMode());
 
-motionQuery.addEventListener('change', emit);
 lightQuery.addEventListener('change', () => { applyTheme(); emit(); });
 applyTheme();

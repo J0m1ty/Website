@@ -50,7 +50,7 @@ export class Rain {
         }
     }
 
-    /** With `blank` (reduced motion) there's no rain at all, just the page background. */
+    /** With `blank` (rain turned off) there's no rain at all, just the page background. */
     paint(buf: CellBuffer, blank = false) {
         const { cols, rows } = this;
         const { rain, rainHead, bg } = P;   // rain: quantized levels, resting field to lit stream

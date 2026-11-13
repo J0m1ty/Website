@@ -6,7 +6,7 @@
 //   3. hand the buffer to the renderer, which redraws only changed cells
 
 import { BOLD, CellBuffer, parseColor } from './buffer';
-import { reducedMotion } from './settings';
+import { rainOn, reducedMotion } from './settings';
 import { P, paletteVersion } from './palette';
 import type { Metrics } from './metrics';
 import { Rain } from './rain';
@@ -154,10 +154,9 @@ export class Scene {
         const dt = this.last ? Math.min(0.1, (now - this.last) / 1000) : 0;
         this.last = now;
         const still = reducedMotion();
-        if (!still) {
-            this.time += dt;
-            this.rain.update(dt);
-        }
+        const rain = rainOn();
+        if (!still) this.time += dt;
+        if (rain) this.rain.update(dt);
 
         if (this.palette !== paletteVersion()) {
             this.palette = paletteVersion();
@@ -167,7 +166,7 @@ export class Scene {
         }
 
         this.layout(m);
-        this.rain.paint(this.buf, still);
+        this.rain.paint(this.buf, !rain);
         const t = clock();
         for (const r of this.regions) {
             if (!r.rect) continue;
