@@ -1,4 +1,6 @@
-![{9FDC719B-C614-4900-BAEF-9B1BED315797}](https://github.com/user-attachments/assets/14a029e3-921f-431e-9910-463135c418b6)
+# jomity.net
+
+<img width="1786" height="1244" alt="image" src="https://github.com/user-attachments/assets/d8c8a41c-fd59-4497-89a1-fa2ecfa276d7" />
 
 Landing page for my website. Built with Vite, React, Tailwind and Pixi.js. View the separate status page at [status.jomity.net](https://status.jomity.net).
 
