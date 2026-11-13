@@ -61,7 +61,9 @@ export function measure(width: number, height: number): Metrics {
         cols, rows, oxDev, oyDev,
         padX, padY,
         bufCols: cols + 2 * padX,
-        bufRows: rows + 2 * padY,
+        // Plus one row below: while scrolling the canvas shifts up by up to a
+        // row (see Scene.frame), and this fills the gap it leaves.
+        bufRows: rows + 2 * padY + 1,
         bufOxDev: oxDev - padX * cwDev,
         bufOyDev: oyDev - padY * chDev,
         widthDev, heightDev, width, height,

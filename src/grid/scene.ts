@@ -58,6 +58,8 @@ export class Scene {
     /** A ring transition in progress: components added meanwhile decode in with it. */
     private ring: { reveal: Reveal; end: number } | null = null;
     private palette = paletteVersion();
+    /** The element the page scrolls in; its scroll position offsets the canvas. */
+    scroller: HTMLElement | null = null;
 
     constructor(canvas: HTMLCanvasElement) {
         this.renderer = new Renderer(canvas);
@@ -140,7 +142,7 @@ export class Scene {
         if (!m || reducedMotion()) return 0;
         const reveal: Reveal = {
             start: clock(), seed: 7,
-            shape: { kind: 'ring', x: m.bufCols / 2, y: m.bufRows / 2, aspect: m.cwDev / m.chDev },
+            shape: { kind: 'ring', x: m.bufCols / 2, y: m.padY + m.rows / 2, aspect: m.cwDev / m.chDev },
         };
         const length = revealLength(reveal, { col: 0, row: 0, w: m.bufCols, h: m.bufRows });
         this.ring = { reveal, end: reveal.start + length };
@@ -165,7 +167,14 @@ export class Scene {
             for (const r of this.regions) r.textDirty = true;
         }
 
-        this.layout(m);
+        // Scrolling moves the HTML by pixels, on the compositor. Rather than
+        // snapping it back to whole rows every frame (it shook back and forth
+        // under a finger), lay the grid out as if scrolled to the last whole
+        // row and shift the canvas up by the rest, so both move smoothly.
+        const scrollDev = Math.round((this.scroller?.scrollTop ?? 0) * m.dpr);
+        const fracDev = ((scrollDev % m.chDev) + m.chDev) % m.chDev;
+        this.layout(m, fracDev / m.dpr);
+        this.renderer.setScroll(fracDev);
         this.rain.paint(this.buf, !rain);
         const t = clock();
         for (const r of this.regions) {
@@ -213,7 +222,8 @@ export class Scene {
         }
     }
 
-    private layout(m: Metrics) {
+    /** `frac`: CSS px scrolled past the last whole row; the canvas is shifted up by it. */
+    private layout(m: Metrics, frac: number) {
         const { dpr, cwDev, chDev, bufOxDev: oxDev, bufOyDev: oyDev } = m;
         for (const r of this.regions) {
             const b = r.el.getBoundingClientRect();
@@ -221,9 +231,11 @@ export class Scene {
                 r.rect = null;
                 continue;
             }
-            // Where CSS layout put the element, before our nudge.
+            // Where CSS layout put the element, before our nudge, if the
+            // scroll were at the last whole row. It only changes by whole
+            // rows while scrolling, so the nudge stays put.
             const left = b.left - r.tx;
-            const top = b.top - r.ty;
+            const top = b.top - r.ty + frac;
             const col = Math.round((left * dpr - oxDev) / cwDev);
             const row = Math.round((top * dpr - oyDev) / chDev);
             const tx = (oxDev + col * cwDev) / dpr - left;

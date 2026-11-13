@@ -102,10 +102,16 @@ export function applyReveal(buf: CellBuffer, snap: CellBuffer, r: CellRect, rv: 
     }
 }
 
+// The trail fades in a few fixed shades, not smoothly. A smooth fade gave
+// nearly every trail cell a new color every frame, so each one was redrawn
+// (and often drawn into the glyph atlas) every frame.
+const TRAIL_SHADES = 6;
+
 /** A digit in the trail; k is 1 at the front, fading back along the trail. */
 function trailCell(buf: CellBuffer, i: number, x: number, y: number, k: number, step: number) {
+    const kq = Math.ceil(k * TRAIL_SHADES) / TRAIL_SHADES;
     buf.glyph[i] = hash(x, y, step) < 0.5 ? 48 : 49;
-    buf.fg[i] = mix(P.revealTail, P.revealHead, k * k);
+    buf.fg[i] = mix(P.revealTail, P.revealHead, kq * kq);
     buf.flags[i] = 0;
     buf.aux[i] = 0;
     buf.under[i] = SPACE;

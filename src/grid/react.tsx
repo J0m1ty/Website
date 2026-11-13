@@ -71,6 +71,7 @@ export function GridRoot({ children, boot = true }: { children: ReactNode; boot?
     const ch = grid?.metrics.ch;
     useEffect(() => {
         const root = rootRef.current;
+        if (grid) grid.scene.scroller = root;
         if (!root || !ch) return;
         let pending = 0;
         const onWheel = (e: WheelEvent) => {

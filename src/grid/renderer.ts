@@ -22,9 +22,12 @@ export class Renderer {
     resize(m: Metrics) {
         this.m = m;
         this.canvas.width = m.widthDev;
-        this.canvas.height = m.heightDev;
+        // One row taller than the screen, for the scroll shift (setScroll).
+        this.canvas.height = m.heightDev + m.chDev;
         this.canvas.style.width = `${m.widthDev / m.dpr}px`;
-        this.canvas.style.height = `${m.heightDev / m.dpr}px`;
+        this.canvas.style.height = `${(m.heightDev + m.chDev) / m.dpr}px`;
+        this.scrollDev = -1;
+        this.setScroll(0);
         this.atlas = new GlyphAtlas(m);
         this.invalidate();
     }
@@ -34,7 +37,16 @@ export class Renderer {
         this.prev = null;
         if (!this.m) return;
         this.ctx.fillStyle = hex(P.bg);
-        this.ctx.fillRect(0, 0, this.m.widthDev, this.m.heightDev);
+        this.ctx.fillRect(0, 0, this.m.widthDev, this.m.heightDev + this.m.chDev);
+    }
+
+    private scrollDev = 0;
+
+    /** Shifts the canvas up by part of a row, in device px. */
+    setScroll(dev: number) {
+        if (!this.m || dev === this.scrollDev) return;
+        this.scrollDev = dev;
+        this.canvas.style.transform = dev ? `translateY(${-dev / this.m.dpr}px)` : '';
     }
 
     draw(buf: CellBuffer) {
