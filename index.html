@@ -10,17 +10,27 @@
     <meta name="color-scheme" content="dark">
     <style>html, body { background: #000; }</style>
     <script>
-        // /grid in light mode: start on its paper background, not black (keep in
-        // step with src/grid/settings.ts and palette.ts).
+        // Light mode: start on the paper background, not black (keep in step
+        // with src/grid/settings.ts and palette.ts).
         try {
-            if (location.pathname.startsWith('/grid')) {
-                var s = JSON.parse(localStorage.getItem('jomity.grid.settings') || '{}');
-                var light = s.mode === 'light' || (s.mode !== 'dark' && matchMedia('(prefers-color-scheme: light)').matches);
-                if (light) document.documentElement.style.background = '#edf2ed';
-            }
+            var s = JSON.parse(localStorage.getItem('jomity.grid.settings') || '{}');
+            var light = s.mode === 'light' || (s.mode !== 'dark' && matchMedia('(prefers-color-scheme: light)').matches);
+            if (light) document.documentElement.style.background = '#edf2ed';
         } catch (e) {}
     </script>
     <title>jomity.net</title>
+    <meta name="description" content="Jonathan Schultz">
+    <meta name="theme-color" content="#2dbe5f">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://jomity.net/">
+    <meta property="og:site_name" content="jomity.net">
+    <meta property="og:title" content="jomity.net">
+    <meta property="og:description" content="Jonathan Schultz">
+    <meta property="og:image" content="https://jomity.net/preview.jpg">
+    <meta property="og:image:width" content="600">
+    <meta property="og:image:height" content="600">
+    <meta property="og:image:alt" content="Jonathan Schultz">
+    <meta name="twitter:card" content="summary">
 </head>
 <body>
     <div id="entry"></div>

@@ -227,18 +227,29 @@ export function Prompt({ label, srLabel, onActivate }: { label: string; srLabel:
 
 const STATUS_ITEMS = Object.keys(OPTIONS) as (keyof Settings)[];
 
-/**
- * The settings, as a one-row status line pinned to the bottom row. Each item
- * is a real button that cycles its setting; the canvas only clears the rain
- * behind the line so it reads.
- */
-export function StatusLine() {
-    const settings = useSettings();
-    const ref = useRef<HTMLElement>(null);
+/** Clears the rain right behind its contents so they read. */
+function Clear({ children, className }: { children: ReactNode; className?: string }) {
+    const ref = useRef<HTMLDivElement>(null);
     useCellRegion(ref, (buf, rect) => paintClear(buf, rect));
+    return <div ref={ref} className={className}>{children}</div>;
+}
+
+/**
+ * The page's last row: the settings on the left, each a real button that
+ * cycles its setting, and text on the right. `right` lists versions of that
+ * text, longest first; the first that fits beside the settings is used. If
+ * none fits, the shortest goes on a second row, right-aligned. It
+ * spans `width` cells, centred, so it lines up with the cards above.
+ */
+export function StatusLine({ width, right = [] }: { width: number; right?: string[] }) {
+    const settings = useSettings();
+    // "key:value" per item, two cells between items, two before the right text.
+    const used = STATUS_ITEMS.reduce((n, k) => n + k.length + 1 + settings[k].length, 0) + 2 * (STATUS_ITEMS.length - 1);
+    const text = right.find((t) => used + 2 + [...t].length <= width) ?? right.at(-1);
     return (
-        <footer className="grid-status">
-            <nav ref={ref} aria-label="Settings">
+        <footer className="grid-status" style={{ width: cellsX(width) }}>
+            <Clear>
+            <nav aria-label="Settings">
                 {STATUS_ITEMS.map((key) => (
                     <button
                         key={key}
@@ -251,6 +262,8 @@ export function StatusLine() {
                     </button>
                 ))}
             </nav>
+            </Clear>
+            {text && <Clear className="grid-status-right">{text}</Clear>}
         </footer>
     );
 }
