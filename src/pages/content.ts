@@ -4,16 +4,11 @@
 // "> " list markers are fine). Lists show their first few items and expand
 // the rest.
 
-export interface Role {
-    title: string;
-    text: string;
-}
-
 export interface Job {
+    title: string;
     employer: string;
-    /** One span for the employer, covering every role there. */
     when: string;
-    roles: Role[];
+    text: string;
 }
 
 export interface Link { href: string; label: string }
@@ -50,46 +45,43 @@ export const LINKS: Link[][] = [
     ],
 ];
 
+// Newest start date first: the order once expanded.
 export const JOBS: Job[] = [
     {
+        title: 'Student Grader',
+        employer: 'Rochester Institute of Technology',
+        when: 'Aug 2026 to present',
+        text: 'Evaluate and score coursework for Intro to Computer Science Theory (CSCI 262) against standardized rubrics, auditing for accuracy and completeness. I leave detailed, constructive feedback, keep student grades tracked and up to date, and answer student emails quickly.',
+    },
+    {
+        title: 'Software Engineering Intern',
         employer: 'Lockheed Martin',
         when: 'May 2026 to Dec 2026',
-        roles: [{
-            title: 'Software Engineering Intern',
-            text: 'At Missiles and Fire Control, proposed a standard architecture for telemetry tools and moved legacy C++ tools onto it in Python and React, rewriting HDLC serial protocols and checking them with hardware-in-the-loop tests. Built CI/CD pipelines that took test coverage from zero to 90% and cut runtime by over 60%.',
-        }],
+        text: 'At Missiles and Fire Control, proposed a standard architecture for telemetry tools and moved legacy C++ tools onto it in Python and React, rewriting HDLC serial protocols and checking them with hardware-in-the-loop tests. Built CI/CD pipelines that took test coverage from zero to 90% and cut runtime by over 60%.',
     },
     {
+        title: 'Teaching Assistant',
+        employer: 'Rochester Institute of Technology',
+        when: 'Aug 2025 to Dec 2025',
+        text: 'Helped teach and grade Intro to Software Engineering (SWEN 261) in class, and ran workshops on object-oriented programming, software design and working in teams.',
+    },
+    {
+        title: 'Co-founder',
         employer: 'Insidyr Technologies',
         when: 'Jan 2025 to present',
-        roles: [{
-            title: 'Co-founder and lead developer',
-            text: 'Building a zero-commission trading platform on Discord and the web, with Alpaca for brokerage and Stripe for payments. The backend runs on Cloudflare Workers, Queues and Durable Objects, with an Elixir/OTP service keeping per-user trade streams consistent.',
-        }],
+        text: 'Building a zero-commission trading platform on Discord and the web, with Alpaca for brokerage and Stripe for payments. The backend runs on Cloudflare Workers, Queues and Durable Objects, with an Elixir/OTP service keeping per-user trade streams consistent.',
     },
     {
-        employer: 'Rochester Institute of Technology',
-        when: 'Aug 2025 to present',
-        roles: [
-            {
-                title: 'Grader',
-                text: 'Grading coursework for Intro to Computer Science Theory (CSCI 262).',
-            },
-            {
-                title: 'Teaching Assistant',
-                text: 'Helped teach and grade Intro to Software Engineering (SWEN 261) in class, and ran workshops on object-oriented programming, software design and working in teams.',
-            },
-        ],
-    },
-    {
+        title: 'Peer Tutor',
         employer: 'Finger Lakes Community College',
         when: 'Jan 2023 to May 2024',
-        roles: [{
-            title: 'Peer Tutor',
-            text: 'Tutored computer science and math one-on-one, in person and online, while still in high school through dual enrollment. Earned CRLA Level 1 tutor certification.',
-        }],
+        text: 'Tutored computer science and math one-on-one, in person and online, while still in high school through dual enrollment. Earned CRLA Level 1 tutor certification.',
     },
 ];
+
+/** Collapsed, the experience card shows just these, in this order. */
+export const JOBS_PREVIEW = ['Lockheed Martin', 'Insidyr Technologies']
+    .map((employer) => JOBS.find((j) => j.employer === employer)!);
 
 export const PERSONAL: Project[] = [
     {
@@ -165,18 +157,58 @@ export const SCHOOL: Project[] = [
     },
 ];
 
-/** Relevant RIT courses: code, then name. */
-export const COURSES: [string, string][] = [
-    ['CSCI 264', 'Honors Analysis of Algorithms'],
-    ['CSCI 351', 'Data Communications and Networks'],
-    ['CSCI 251', 'Parallel and Distributed Systems'],
-    ['CSCI 462', 'Intro to Cryptography'],
-    ['CSCI 331', 'Intro to Artificial Intelligence'],
-    ['CSCI 344', 'Programming Language Concepts'],
-    ['CSCI 320', 'Principles of Data Management'],
-    ['CSCI 262', 'Intro to CS Theory'],
-    ['SWEN 261', 'Intro to Software Engineering'],
-    ['MATH 351', 'Graph Theory'],
-    ['MATH 441', 'Abstract Algebra'],
-    ['MATH 241', 'Honors Linear Algebra'],
+export interface Term {
+    term: string;
+    courses: [string, string][];    // code, name
+}
+
+/** Shown above the semesters. */
+export const GPA = '3.98 GPA, 126 credits';
+
+/** CS and math courses at RIT by semester, newest first (gen eds left out). */
+export const COURSES: Term[] = [
+    {
+        term: 'Fall 2026',
+        courses: [
+            ['CSCI 264', 'Honors Analysis of Algorithms'],
+            ['CSCI 351', 'Data Communications and Networks'],
+            ['MATH 351', 'Graph Theory'],
+            ['MATH 441', 'Abstract Algebra'],
+        ],
+    },
+    {
+        term: 'Spring 2026',
+        courses: [
+            ['CSCI 251', 'Parallel and Distributed Systems'],
+            ['CSCI 331', 'Intro to Artificial Intelligence'],
+            ['CSCI 462', 'Intro to Cryptography'],
+            ['MATH 241', 'Honors Linear Algebra'],
+            ['MATH 231', 'Differential Equations'],
+        ],
+    },
+    {
+        term: 'Fall 2025',
+        courses: [
+            ['CSCI 262', 'Intro to CS Theory'],
+            ['CSCI 320', 'Principles of Data Management'],
+            ['CSCI 344', 'Programming Language Concepts'],
+            ['MATH 221', 'Honors Multivariable Calculus'],
+        ],
+    },
+    {
+        term: 'Spring 2025',
+        courses: [
+            ['CSCI 243', 'Mechanics of Programming'],
+            ['SWEN 261', 'Intro to Software Engineering'],
+            ['MATH 190', 'Discrete Math for Computing'],
+            ['MATH 251', 'Probability and Statistics'],
+        ],
+    },
+    {
+        term: 'Fall 2024',
+        courses: [
+            ['CSCI 140', 'Computer Science for AP Students'],
+            ['MATH 182', 'Calculus II'],
+        ],
+    },
 ];

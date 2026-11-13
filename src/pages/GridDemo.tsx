@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useGrid } from '../grid/context';
 import { Banner, GridRoot, Panel, Prompt, StatusLine } from '../grid/react';
-import { COURSES, JOBS, LINKS, PERSONAL, SCHOOL, type Job, type Link, type Project } from './content';
+import { COURSES, GPA, JOBS, JOBS_PREVIEW, LINKS, PERSONAL, SCHOOL, type Job, type Link, type Project } from './content';
 
 export default function GridDemo() {
     return (
@@ -82,8 +82,8 @@ function Layout() {
                 </Panel>
 
                 <Panel title="links" width={narrow ? full : 24}>
-                    {/* A column per group when the card is full width, else one list. */}
-                    <div className={narrow ? 'link-columns' : undefined}>
+                    {/* A column per group when the card is full width, else one list with a row between groups. */}
+                    <div className={narrow ? 'link-columns' : 'link-groups'}>
                         {LINKS.map((group, i) => (
                             <ul key={i}>
                                 {group.map((l) => <li key={l.label}>&gt; <ExtLink link={l} /></li>)}
@@ -94,7 +94,7 @@ function Layout() {
             </div>
 
             <Panel title="experience" width={full}>
-                <More items={JOBS} show={2} render={(job) => <JobEntry job={job} />} />
+                <More items={JOBS} preview={JOBS_PREVIEW} render={(job) => <JobEntry job={job} />} />
             </Panel>
 
             <Panel title="personal projects" width={full}>
@@ -106,11 +106,15 @@ function Layout() {
             </Panel>
 
             <Panel title="coursework" width={full}>
-                <ul className="courses">
-                    {COURSES.map(([code, name]) => (
-                        <li key={code}><span className="dim">{code}</span><span className="gap" />{name}</li>
-                    ))}
-                </ul>
+                <p className="dim">{GPA}</p>
+                <More items={COURSES} show={2} render={(t) => (
+                    <>
+                        <strong>{t.term}</strong>
+                        <ul>
+                            {t.courses.map(([code, name]) => <li key={code}><span className="dim">{code}</span> {name}</li>)}
+                        </ul>
+                    </>
+                )} />
             </Panel>
         </main>
         {/* Only on the page, never the splash: the ring would decode it out for good. */}
@@ -127,14 +131,23 @@ function ExtLink({ link }: { link: Link }) {
     );
 }
 
-/** The first `show` items, and a text button that expands the rest. */
-function More<T>({ items, show, render }: { items: T[]; show: number; render: (item: T, i: number) => React.ReactNode }) {
+interface MoreProps<T> {
+    items: T[];
+    /** What shows collapsed: the first `show` items, or a hand-picked `preview`. */
+    show?: number;
+    preview?: T[];
+    render: (item: T) => React.ReactNode;
+}
+
+/** A short list, and a text button that expands it to the full one. */
+function More<T>({ items, show = 2, preview, render }: MoreProps<T>) {
     const [open, setOpen] = useState(false);
-    const hidden = items.length - show;
+    const shown = open ? items : preview ?? items.slice(0, show);
+    const hidden = items.length - (preview ?? items.slice(0, show)).length;
     return (
         <>
             <ul className="entries">
-                {(open ? items : items.slice(0, show)).map((item, i) => <li key={i}>{render(item, i)}</li>)}
+                {shown.map((item) => <li key={items.indexOf(item)}>{render(item)}</li>)}
             </ul>
             {hidden > 0 && (
                 <button type="button" className="text-button" aria-expanded={open} onClick={() => setOpen(!open)}>
@@ -145,20 +158,16 @@ function More<T>({ items, show, render }: { items: T[]; show: number; render: (i
     );
 }
 
-/** Employer with its dates on the right, then each role there: title, then what it was. */
+/** Title with its dates on the right, the employer under it, then what it was. */
 function JobEntry({ job }: { job: Job }) {
     return (
         <>
             <div className="entry-head">
-                <strong>{job.employer}</strong>
+                <strong>{job.title}</strong>
                 <span className="dim">{job.when}</span>
             </div>
-            {job.roles.map((r, i) => (
-                <div key={i} className={i ? 'spaced' : undefined}>
-                    <div className="dim">{r.title}</div>
-                    <p>{r.text}</p>
-                </div>
-            ))}
+            <div className="dim">{job.employer}</div>
+            <p>{job.text}</p>
         </>
     );
 }
@@ -168,8 +177,8 @@ function ProjectEntry({ project: p }: { project: Project }) {
         <>
             <div className="entry-head">
                 <span>
+                    {p.star && <span className="star">* </span>}
                     <strong>{p.name}</strong>
-                    {p.star && <span className="star"> *</span>}
                     {p.langs && <span className="dim"> ({p.langs})</span>}
                 </span>
                 {p.links && (

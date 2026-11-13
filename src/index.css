@@ -158,10 +158,9 @@ html,
     font-weight: 700;
 }
 
-/* Coursework: course code, two blank cells, name. */
-.courses .gap {
-    display: inline-block;
-    width: calc(var(--cw) * 2);
+/* Links card beside the about card: one list, a blank row between groups. */
+.link-groups > ul + ul {
+    margin-top: var(--ch);
 }
 
 /* "> 3 more": a button that reads like a link. */
