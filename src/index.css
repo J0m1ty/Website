@@ -123,6 +123,69 @@ html,
     margin-top: var(--ch);
 }
 
+/* Name on the left, date or link pushed to the right edge. Every character
+   is exactly one cell, so right-aligned text still lands on the grid. */
+.entry-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    column-gap: calc(var(--cw) * 2);
+}
+
+.entry-head > :last-child:not(:first-child) {
+    margin-left: auto;
+}
+
+.entry-links {
+    display: flex;
+    gap: calc(var(--cw) * 2);
+}
+
+/* Links card at full width: a column per group, 14 cells each. */
+.link-columns {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.link-columns > ul {
+    width: calc(var(--cw) * 14);
+}
+
+/* Highlighted projects. */
+.star {
+    --ink: var(--c-link);
+    color: var(--ink);
+    font-weight: 700;
+}
+
+/* Coursework: course code, two blank cells, name. */
+.courses .gap {
+    display: inline-block;
+    width: calc(var(--cw) * 2);
+}
+
+/* "> 3 more": a button that reads like a link. */
+.text-button {
+    font: inherit;
+    letter-spacing: inherit;
+    line-height: inherit;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    color: var(--c-link);
+}
+
+.text-button:hover {
+    color: var(--c-bg);
+    background: var(--c-link);
+}
+
+.text-button:focus-visible {
+    outline: 1px dashed var(--c-focus);
+    outline-offset: 0;
+}
+
 .panel strong {
     font-weight: 700;
     --ink: var(--c-strong);

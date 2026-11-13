@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useGrid } from '../grid/context';
 import { Banner, GridRoot, Panel, Prompt, StatusLine } from '../grid/react';
-
+import { COURSES, JOBS, LINKS, PERSONAL, SCHOOL, type Job, type Link, type Project } from './content';
 
 export default function GridDemo() {
     return (
@@ -70,64 +70,47 @@ function Layout() {
                 <Panel title="about" width={narrow ? full : 48}>
                     <p>
                         Hi, I'm <strong>Jonathan Schultz</strong> (Jomity). I study
-                        computer science and math at RIT, and I'm a software
-                        engineering intern at Lockheed Martin.
+                        computer science and math at RIT, and I founded Insidyr.
+                        I'm most interested in backend work on distributed systems.
                     </p>
+                    <p className="dim">...loading other interests...</p>
                     <p>
-                        I like backend work on distributed systems. Away from
-                        the keyboard I lift, row, play chess and do competitive
-                        programming and math.
+                        I lift, row, listen to a lot of music, do competitive
+                        programming and math, and play chess. Challenge me at
+                        Beat Saber, I dare you!
                     </p>
-                    <p>email: <a href="mailto:jomity@hotmail.com">jomity@hotmail.com</a></p>
                 </Panel>
 
                 <Panel title="links" width={narrow ? full : 24}>
-                    <ul>
-                        <li>&gt; <a href="https://github.com/J0m1ty" target="_blank" rel="noreferrer">github</a></li>
-                        <li>&gt; <a href="https://www.linkedin.com/in/jomity/" target="_blank" rel="noreferrer">linkedin</a></li>
-                        <li>&gt; <a href="https://open.spotify.com/user/psbmkzrjh8ap9z2j0ioraesci" target="_blank" rel="noreferrer">spotify</a></li>
-                        <li>&gt; <a href="https://discord.com/users/544963690185752576" target="_blank" rel="noreferrer">discord</a></li>
-                    </ul>
+                    {/* A column per group when the card is full width, else one list. */}
+                    <div className={narrow ? 'link-columns' : undefined}>
+                        {LINKS.map((group, i) => (
+                            <ul key={i}>
+                                {group.map((l) => <li key={l.label}>&gt; <ExtLink link={l} /></li>)}
+                            </ul>
+                        ))}
+                    </div>
                 </Panel>
             </div>
 
             <Panel title="experience" width={full}>
-                <ul className="entries">
-                    <Entry
-                        title="Lockheed Martin" role="embedded software engineering intern" when="2026 - now"
-                        text="Moving legacy C++ telemetry tools to Python and React, rewriting HDLC serial protocols, and building CI pipelines (test coverage 0 to 90%)."
-                    />
-                    <Entry
-                        title="Insidyr Technologies" role="co-founder" when="2025 - now"
-                        text="A zero-commission trading platform on Discord and the web: Alpaca, Stripe, Cloudflare Workers, and an Elixir/OTP service for live trade streams."
-                    />
-                    <Entry
-                        title="RIT" role="undergraduate teaching assistant" when="2025"
-                        text="Taught and graded Intro to Software Engineering; ran workshops on OOP and software design."
-                    />
-                </ul>
+                <More items={JOBS} show={2} render={(job) => <JobEntry job={job} />} />
             </Panel>
 
-            <Panel title="projects" width={full}>
-                <ul className="entries">
-                    <Entry
-                        title="jombox" link="https://status.jomity.net" linkText="status.jomity.net"
-                        text="The Linux VPS behind this site: web services, APIs and game servers in Docker, for 2K+ visitors a month."
-                    />
-                    <Entry
-                        title="market maker" link="https://market.jomity.net" linkText="market.jomity.net"
-                        text="A real-time supply-and-demand simulator used for live classroom demos at RIT."
-                    />
-                    <Entry
-                        title="secure messenger"
-                        text="Peer-to-peer chat in C#: RSA key exchange, AES, and a fault-tolerant UDP mesh."
-                    />
-                    <Entry
-                        title="armadahex" link="https://armadahex.blogspot.com" linkText="armadahex.blogspot.com"
-                        text="Battleship with hexagons: a multiplayer Unity game built by a team of 7, with its own auth server."
-                    />
+            <Panel title="personal projects" width={full}>
+                <More items={PERSONAL} show={2} render={(p) => <ProjectEntry project={p} />} />
+            </Panel>
+
+            <Panel title="school projects" width={full}>
+                <More items={SCHOOL} show={2} render={(p) => <ProjectEntry project={p} />} />
+            </Panel>
+
+            <Panel title="coursework" width={full}>
+                <ul className="courses">
+                    {COURSES.map(([code, name]) => (
+                        <li key={code}><span className="dim">{code}</span><span className="gap" />{name}</li>
+                    ))}
                 </ul>
-                <p>more on <a href="https://github.com/J0m1ty" target="_blank" rel="noreferrer">github</a></p>
             </Panel>
         </main>
         {/* Only on the page, never the splash: the ring would decode it out for good. */}
@@ -136,26 +119,66 @@ function Layout() {
     );
 }
 
-interface EntryProps {
-    title: string;
-    role?: string;
-    when?: string;
-    link?: string;
-    linkText?: string;
-    text: string;
+/** Opens off-site links in a new tab; mail and same-site links open normally. */
+function ExtLink({ link }: { link: Link }) {
+    const external = /^https?:/.test(link.href);
+    return (
+        <a href={link.href} {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}>{link.label}</a>
+    );
 }
 
-/** One item in a list card: a bold title, a dim role/date or link, then a line or two. */
-function Entry({ title, role, when, link, linkText, text }: EntryProps) {
+/** The first `show` items, and a text button that expands the rest. */
+function More<T>({ items, show, render }: { items: T[]; show: number; render: (item: T, i: number) => React.ReactNode }) {
+    const [open, setOpen] = useState(false);
+    const hidden = items.length - show;
     return (
-        <li>
-            <div>
-                <strong>{title}</strong>
-                {role && <span className="dim"> - {role}</span>}
-                {when && <span className="dim">, {when}</span>}
-                {link && <> <span className="dim">-</span> <a href={link} target="_blank" rel="noreferrer">{linkText}</a></>}
+        <>
+            <ul className="entries">
+                {(open ? items : items.slice(0, show)).map((item, i) => <li key={i}>{render(item, i)}</li>)}
+            </ul>
+            {hidden > 0 && (
+                <button type="button" className="text-button" aria-expanded={open} onClick={() => setOpen(!open)}>
+                    {open ? '> less' : `> ${hidden} more`}
+                </button>
+            )}
+        </>
+    );
+}
+
+/** Employer with its dates on the right, then each role there: title, then what it was. */
+function JobEntry({ job }: { job: Job }) {
+    return (
+        <>
+            <div className="entry-head">
+                <strong>{job.employer}</strong>
+                <span className="dim">{job.when}</span>
             </div>
-            <p>{text}</p>
-        </li>
+            {job.roles.map((r, i) => (
+                <div key={i} className={i ? 'spaced' : undefined}>
+                    <div className="dim">{r.title}</div>
+                    <p>{r.text}</p>
+                </div>
+            ))}
+        </>
+    );
+}
+
+function ProjectEntry({ project: p }: { project: Project }) {
+    return (
+        <>
+            <div className="entry-head">
+                <span>
+                    <strong>{p.name}</strong>
+                    {p.star && <span className="star"> *</span>}
+                    {p.langs && <span className="dim"> ({p.langs})</span>}
+                </span>
+                {p.links && (
+                    <span className="entry-links">
+                        {p.links.map((l) => <ExtLink key={l.href} link={l} />)}
+                    </span>
+                )}
+            </div>
+            <p>{p.text}</p>
+        </>
     );
 }
