@@ -1,16 +1,13 @@
 // Things that draw into a cell rectangle the DOM has reserved.
 
-import { BOLD, CellBuffer, IN_DOWN, IN_LEFT, IN_RIGHT, IN_UP, SPACE, mix, rgb } from './buffer';
+import { BOLD, CellBuffer, IN_DOWN, IN_LEFT, IN_RIGHT, IN_UP, SPACE, mix } from './buffer';
+import { P } from './palette';
 import { hash } from './hash';
 import type { CellRect, Frame } from './scene';
 
 // ── Panels ────────────────────────────────────────────────────────────────
 
 export type BorderStyle = 'round' | 'square';
-
-const FILL = rgb(5, 15, 9);
-const BORDER = rgb(45, 190, 95);
-const TITLE = rgb(190, 255, 205);
 
 /**
  * Puts border characters round a rectangle. Each border cell keeps whatever
@@ -21,6 +18,7 @@ function border(buf: CellBuffer, r: CellRect, style: BorderStyle, fill: number) 
     const { col, row, w, h } = r;
     const x1 = col + w - 1, y1 = row + h - 1;
     const [tl, tr, bl, br] = style === 'round' ? '╭╮╰╯' : '┌┐└┘';
+    const BORDER = P.border;
 
     buf.edge(col, row, tl, BORDER, IN_DOWN | IN_RIGHT, fill);
     buf.edge(x1, row, tr, BORDER, IN_DOWN | IN_LEFT, fill);
@@ -40,7 +38,7 @@ function border(buf: CellBuffer, r: CellRect, style: BorderStyle, fill: number) 
 function title(buf: CellBuffer, r: CellRect, text: string | undefined, fill: number) {
     if (!text || text.length + 4 > r.w) return;
     let x = r.col + 2;
-    for (const ch of ` ${text} `) buf.set(x++, r.row, ch, TITLE, BOLD | IN_DOWN, fill);
+    for (const ch of ` ${text} `) buf.set(x++, r.row, ch, P.title, BOLD | IN_DOWN, fill);
 }
 
 /** A filled card: the inside of the border line is filled, the outside stays transparent. */
@@ -53,11 +51,11 @@ export function paintPanel(buf: CellBuffer, r: CellRect, style: BorderStyle, lab
             if (!buf.has(x, y)) continue;
             const i = y * buf.cols + x;
             buf.glyph[i] = SPACE;
-            buf.bg[i] = FILL;
+            buf.bg[i] = P.fill;
         }
     }
-    border(buf, r, style, FILL);
-    title(buf, r, label, FILL);
+    border(buf, r, style, P.fill);
+    title(buf, r, label, P.fill);
 }
 
 /**
@@ -85,17 +83,26 @@ export function paintRainPanel(buf: CellBuffer, r: CellRect, f: Frame, style: Bo
             const i = y * buf.cols + x;
             const l = f.light[i];
             if (l < 0.35 || (x - col >= from && x - col <= to)) buf.glyph[i] = SPACE;
-            else buf.fg[i] = mix(0, buf.fg[i], (l - 0.35) * 0.6);
+            else buf.fg[i] = mix(P.bg, buf.fg[i], (l - 0.35) * 0.6);
         }
     }
 
-    border(buf, r, style, 0);
-    title(buf, r, label, 0);
+    border(buf, r, style, P.bg);
+    title(buf, r, label, P.bg);
 
     for (const g of f.text) {
         const x = col + g.dx, y = row + g.dy;
         if (x <= col || y <= row || x >= col + w - 1 || y >= row + h - 1) continue;
         buf.set(x, y, g.cp, g.color, g.flags);
+    }
+}
+
+/** Clears the rain under a rectangle, plus one cell either side, so DOM text on it reads. */
+export function paintClear(buf: CellBuffer, r: CellRect) {
+    for (let y = r.row; y < r.row + r.h; y++) {
+        for (let x = r.col - 1; x <= r.col + r.w; x++) {
+            if (buf.has(x, y)) buf.glyph[y * buf.cols + x] = SPACE;
+        }
     }
 }
 
@@ -116,8 +123,6 @@ const FONT: Record<string, string[]> = {
     ' ': ['..', '..', '..', '..', '..', '..', '..', '..'],
 };
 const FONT_ROWS = 8;
-const SHIMMER = Array.from({ length: 8 }, (_, i) => mix(rgb(40, 200, 95), rgb(225, 255, 232), i / 7));
-const HOT = rgb(130, 255, 175);
 const ASPECT = 0.45;    // cell width / height, for round distances
 
 export function bannerSize(text: string, scale: number) {
@@ -204,9 +209,6 @@ function glitchShift(g: { seed: number; t: number }, row: number) {
     return amount || 1;
 }
 
-const STEADY = rgb(35, 175, 85);
-const RAIN_LIT = rgb(225, 255, 232);
-const WHITE = rgb(240, 255, 244);
 const FULL = '█'.codePointAt(0)!;
 const OUTLINE = 1.1;    // digits look: rain is cleared this close to the letters, in row heights
 
@@ -214,16 +216,16 @@ function letterCell(buf: CellBuffer, x: number, y: number, block: number, o: Ban
     let color: number;
     if (o.glow === 'rain') {
         const l = buf.has(x, y) ? o.light[y * buf.cols + x] : 0;
-        color = mix(STEADY, RAIN_LIT, l * l * 0.9 + l * 0.1);
+        color = mix(P.steady, P.rainLit, l * l * 0.9 + l * 0.1);
     } else {
         color = shimmer(x, y, o.time);
     }
-    if (flash > 0) color = mix(color, WHITE, flash);
+    if (flash > 0) color = mix(color, P.flash, flash);
     if (o.look === 'blocks') {
         buf.set(x, y, block, color);
         return;
     }
-    if (block !== FULL) color = mix(color, 0, 0.45);
+    if (block !== FULL) color = mix(color, P.bg, 0.45);
     const phase = hash(x, y, 5) * 10;
     const digit = hash(x, y, Math.floor(o.time * 0.8 + phase)) < 0.5 ? '0' : '1';
     buf.set(x, y, digit, color, BOLD);
@@ -251,7 +253,7 @@ export function paintBanner(buf: CellBuffer, r: CellRect, text: string, o: Banne
             if (!block) continue;
             const x = r.col + lx + shift, y = r.row + ly;
             if (g && hash(lx, ly, g.seed + step * 31) < GLITCH_NOISE) {
-                buf.set(x, y, hash(ly, lx, step) < 0.5 ? '0' : '1', HOT, BOLD);
+                buf.set(x, y, hash(ly, lx, step) < 0.5 ? '0' : '1', P.hot, BOLD);
             } else {
                 letterCell(buf, x, y, block, o, shift ? 0.35 : 0);
             }
@@ -261,14 +263,14 @@ export function paintBanner(buf: CellBuffer, r: CellRect, text: string, o: Banne
 
 function shimmer(x: number, y: number, time: number) {
     const wave = 0.5 + 0.5 * Math.sin(x * 0.18 + y * 0.6 - time * 2.2);
-    return SHIMMER[Math.round(wave * 7)];
+    return P.shimmer[Math.round(wave * (P.shimmer.length - 1))];
 }
 
 // ── Prompt: a pulsing line of text, e.g. "< click to enter >" ──
 
 export function paintPrompt(buf: CellBuffer, r: CellRect, label: string, time: number) {
     const pulse = 0.5 + 0.5 * Math.sin(time * 3);
-    const color = mix(rgb(40, 170, 85), rgb(225, 255, 232), pulse);
+    const color = mix(P.promptLow, P.promptHigh, pulse);
     const len = [...label].length;
     const x0 = r.col + Math.floor((r.w - len) / 2);
     // Clear the rain right behind the words (one cell either side) so they read.

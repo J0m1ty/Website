@@ -26,11 +26,24 @@ html,
 }
 /* ── Character grid (src/grid) ───────────────────────────────────────────── */
 
+/* Colors come from src/grid/palette.ts, which sets these on <html> for the
+   chosen theme. The values here are the original green/dark, for first paint. */
+:root {
+    --c-bg: #000000;
+    --c-ink: #a6e8b6;
+    --c-strong: #c8ffd6;
+    --c-link: #72ffa3;
+    --c-dim: #4f9a66;
+    --c-selection: #1d8a46;
+    --c-selection-ink: #f0fff3;
+    --c-focus: #2dbe5f;
+}
+
 .grid-canvas {
     position: fixed;
     left: 0;
     top: 0;
-    background: #000;
+    background: var(--c-bg);
 }
 
 /* The DOM layer: same origin and cell size as the canvas. Everything in it is
@@ -46,29 +59,29 @@ html,
     line-height: var(--ch);
     letter-spacing: var(--ls);
     /* Text colors are set through --ink so canvas-drawn (mirrored) text can read them. */
-    --ink: #a6e8b6;
+    --ink: var(--c-ink);
     color: var(--ink);
 }
 
 .grid-root ::selection {
-    background: #1d8a46;
-    color: #f0fff3;
+    background: var(--c-selection);
+    color: var(--c-selection-ink);
 }
 
 .grid-root a {
-    --ink: #72ffa3;
+    --ink: var(--c-link);
     color: var(--ink);
     text-decoration: underline;
 }
 
 .grid-root a:hover {
-    color: #000;
-    background: #72ffa3;
+    color: var(--c-bg);
+    background: var(--c-link);
     text-decoration: none;
 }
 
 .grid-root .dim {
-    --ink: #4f9a66;
+    --ink: var(--c-dim);
     color: var(--ink);
 }
 
@@ -81,7 +94,7 @@ html,
 
 .grid-root .panel-rain ::selection {
     color: transparent;
-    background: rgb(29 138 70 / 0.45);
+    background: color-mix(in srgb, var(--c-selection) 45%, transparent);
 }
 
 .grid-root .panel-rain a {
@@ -90,7 +103,7 @@ html,
 
 .grid-root .panel-rain a:hover {
     color: transparent;
-    background: rgb(114 255 163 / 0.2);
+    background: color-mix(in srgb, var(--c-link) 20%, transparent);
     text-decoration: underline;
     text-decoration-color: var(--ink);
 }
@@ -104,12 +117,20 @@ html,
 
 /* Vertical spacing always comes in whole rows. */
 .panel > * + *,
-.panel .spaced {
+.panel .spaced,
+.panel .entries > li + li {
     margin-top: var(--ch);
 }
 
+.panel strong {
+    font-weight: 700;
+    --ink: var(--c-strong);
+    color: var(--ink);
+}
+
 .grid-demo {
-    min-height: 100%;
+    /* one row short of the screen: the status line takes the last row */
+    min-height: calc(100% - var(--ch));
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -146,6 +167,47 @@ html,
 }
 
 .grid-prompt:focus-visible {
-    outline: 1px dashed #2dbe5f;
+    outline: 1px dashed var(--c-focus);
     outline-offset: 2px;
+}
+
+/* Settings status line: the last row of the page. Not pinned: pinned, it ran
+   over cards scrolling under it. On a short page it still lands on the screen's
+   last row, since the content above is one row short of the screen. */
+.grid-status {
+    min-height: var(--ch);
+    padding-left: var(--cw);
+}
+
+.grid-status nav {
+    display: flex;
+    flex-wrap: wrap;
+    width: fit-content;
+    gap: 0 calc(var(--cw) * 2);
+}
+
+.grid-status-item {
+    font: inherit;
+    letter-spacing: inherit;
+    line-height: inherit;
+    color: var(--c-dim);
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+.grid-status-item .value {
+    color: var(--c-link);
+}
+
+.grid-status-item:hover,
+.grid-status-item:hover .value {
+    color: var(--c-bg);
+    background: var(--c-link);
+}
+
+.grid-status-item:focus-visible {
+    outline: 1px dashed var(--c-focus);
+    outline-offset: 0;
 }

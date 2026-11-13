@@ -1,15 +1,10 @@
 // The background layer: a field of dim 1s and 0s with brighter streams
 // falling through it, one stream per column.
 
-import { CellBuffer, mix, rgb } from './buffer';
+import { CellBuffer } from './buffer';
+import { P } from './palette';
 
 const CHARS = ['0'.codePointAt(0)!, '1'.codePointAt(0)!];
-const LEVELS = 16;
-const FIELD = rgb(0, 30, 12);
-const BRIGHT = rgb(40, 235, 105);
-const HEAD = rgb(215, 255, 225);
-// Quantized so the glyph atlas only ever holds a few dozen variants.
-const PALETTE = Array.from({ length: LEVELS }, (_, i) => mix(FIELD, BRIGHT, Math.pow(i / (LEVELS - 1), 1.7)));
 
 interface Drop { y: number; speed: number; length: number }
 
@@ -55,8 +50,10 @@ export class Rain {
         }
     }
 
-    paint(buf: CellBuffer) {
+    /** With `blank` (reduced motion) there's no rain at all, just the page background. */
+    paint(buf: CellBuffer, blank = false) {
         const { cols, rows } = this;
+        const { rain, rainHead, bg } = P;   // rain: quantized levels, resting field to lit stream
         for (let x = 0; x < cols; x++) {
             const d = this.drops[x];
             const head = Math.floor(d.y);
@@ -64,10 +61,10 @@ export class Rain {
                 const i = y * cols + x;
                 const dist = head - y;
                 const level = dist === 0 ? 1 : dist > 0 && dist < d.length ? 1 - dist / d.length : 0;
-                this.light[i] = level;
-                buf.glyph[i] = this.glyphs[i];
-                buf.fg[i] = dist === 0 ? HEAD : PALETTE[Math.round(level * (LEVELS - 1))];
-                buf.bg[i] = 0;
+                this.light[i] = blank ? 0 : level;
+                buf.glyph[i] = blank ? 32 : this.glyphs[i];
+                buf.fg[i] = dist === 0 ? rainHead : rain[Math.round(level * (rain.length - 1))];
+                buf.bg[i] = bg;
                 buf.aux[i] = 0;
                 buf.under[i] = 32;
                 buf.flags[i] = 0;

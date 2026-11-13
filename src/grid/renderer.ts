@@ -4,6 +4,7 @@
 import { GlyphAtlas } from './atlas';
 import { CellBuffer, INSIDE, SPACE } from './buffer';
 import type { Metrics } from './metrics';
+import { hex, P } from './palette';
 
 export class Renderer {
     private canvas: HTMLCanvasElement;
@@ -25,9 +26,15 @@ export class Renderer {
         this.canvas.style.width = `${m.widthDev / m.dpr}px`;
         this.canvas.style.height = `${m.heightDev / m.dpr}px`;
         this.atlas = new GlyphAtlas(m);
+        this.invalidate();
+    }
+
+    /** Repaints everything next draw, margins included (the palette changed). */
+    invalidate() {
         this.prev = null;
-        this.ctx.fillStyle = '#000';
-        this.ctx.fillRect(0, 0, m.widthDev, m.heightDev);
+        if (!this.m) return;
+        this.ctx.fillStyle = hex(P.bg);
+        this.ctx.fillRect(0, 0, this.m.widthDev, this.m.heightDev);
     }
 
     draw(buf: CellBuffer) {

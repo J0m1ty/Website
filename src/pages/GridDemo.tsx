@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useGrid } from '../grid/context';
-import { Banner, GridRoot, Panel, Prompt } from '../grid/react';
+import { Banner, GridRoot, Panel, Prompt, StatusLine } from '../grid/react';
 
 // /grid?nosplash skips the splash and boots the page instead.
 const skipSplash = new URLSearchParams(window.location.search).has('nosplash');
@@ -64,18 +64,23 @@ function Layout() {
     const full = narrow ? metrics.cols - 4 : 74;
 
     return (
+        <>
         <main className="grid-demo">
             <Banner text="jomity.net" scale={1} />
 
             <div className="grid-demo-row">
                 <Panel title="about" width={narrow ? full : 48}>
                     <p>
-                        Hi! This card is a real HTML element, laid out by plain flexbox.
-                        Its border, fill and shadow are drawn on the canvas behind it,
-                        snapped to the character grid.
+                        Hi, I'm <strong>Jonathan Schultz</strong> (Jomity). I study
+                        computer science and math at RIT, and I'm a software
+                        engineering intern at Lockheed Martin.
                     </p>
-                    <p>Try selecting this text. The <strong>1s and 0s</strong> around it won't select.</p>
-                    <p>email: <span className="dim">[your email here]</span></p>
+                    <p>
+                        I like backend work on distributed systems. Away from
+                        the keyboard I lift, row, play chess and do competitive
+                        programming and math.
+                    </p>
+                    <p>email: <a href="mailto:jomity@hotmail.com">jomity@hotmail.com</a></p>
                 </Panel>
 
                 <Panel title="links" width={narrow ? full : 24}>
@@ -88,18 +93,71 @@ function Layout() {
                 </Panel>
             </div>
 
-            <Panel title="projects" fill="rain" width={full}>
-                <p>
-                    A "rain" card: no background, so streams keep falling behind
-                    this text. The text is drawn on the canvas; the HTML copy
-                    underneath is invisible, but you can still select it.
-                </p>
-                <ul className="spaced">
-                    <li>market maker <span className="dim">- market.jomity.net</span></li>
-                    <li>armadahex auth <span className="dim">- auth.jomity.net</span></li>
-                    <li>status page <span className="dim">- status.jomity.net</span></li>
+            <Panel title="experience" width={full}>
+                <ul className="entries">
+                    <Entry
+                        title="Lockheed Martin" role="embedded software engineering intern" when="2026 - now"
+                        text="Moving legacy C++ telemetry tools to Python and React, rewriting HDLC serial protocols, and building CI pipelines (test coverage 0 to 90%)."
+                    />
+                    <Entry
+                        title="Insidyr Technologies" role="co-founder" when="2025 - now"
+                        text="A zero-commission trading platform on Discord and the web: Alpaca, Stripe, Cloudflare Workers, and an Elixir/OTP service for live trade streams."
+                    />
+                    <Entry
+                        title="RIT" role="undergraduate teaching assistant" when="2025"
+                        text="Taught and graded Intro to Software Engineering; ran workshops on OOP and software design."
+                    />
                 </ul>
             </Panel>
+
+            <Panel title="projects" width={full}>
+                <ul className="entries">
+                    <Entry
+                        title="jombox" link="https://status.jomity.net" linkText="status.jomity.net"
+                        text="The Linux VPS behind this site: web services, APIs and game servers in Docker, for 2K+ visitors a month."
+                    />
+                    <Entry
+                        title="market maker" link="https://market.jomity.net" linkText="market.jomity.net"
+                        text="A real-time supply-and-demand simulator used for live classroom demos at RIT."
+                    />
+                    <Entry
+                        title="secure messenger"
+                        text="Peer-to-peer chat in C#: RSA key exchange, AES, and a fault-tolerant UDP mesh."
+                    />
+                    <Entry
+                        title="armadahex" link="https://armadahex.blogspot.com" linkText="armadahex.blogspot.com"
+                        text="Battleship with hexagons: a multiplayer Unity game built by a team of 7, with its own auth server."
+                    />
+                </ul>
+                <p>more on <a href="https://github.com/J0m1ty" target="_blank" rel="noreferrer">github</a></p>
+            </Panel>
         </main>
+        {/* Only on the page, never the splash: the ring would decode it out for good. */}
+        <StatusLine />
+        </>
+    );
+}
+
+interface EntryProps {
+    title: string;
+    role?: string;
+    when?: string;
+    link?: string;
+    linkText?: string;
+    text: string;
+}
+
+/** One item in a list card: a bold title, a dim role/date or link, then a line or two. */
+function Entry({ title, role, when, link, linkText, text }: EntryProps) {
+    return (
+        <li>
+            <div>
+                <strong>{title}</strong>
+                {role && <span className="dim"> - {role}</span>}
+                {when && <span className="dim">, {when}</span>}
+                {link && <> <span className="dim">-</span> <a href={link} target="_blank" rel="noreferrer">{linkText}</a></>}
+            </div>
+            <p>{text}</p>
+        </li>
     );
 }

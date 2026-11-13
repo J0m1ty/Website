@@ -7,10 +7,11 @@ import { cellsX, cellsY, GridContext, useGrid, type Grid } from './context';
 import { FONT_FAMILY, measure } from './metrics';
 import { now } from './hash';
 import {
-    bannerSize, paintBanner, paintPanel, paintPrompt, paintRainPanel,
+    bannerSize, paintBanner, paintClear, paintPanel, paintPrompt, paintRainPanel,
     type BannerGlow, type BannerLook, type BorderStyle,
 } from './painters';
 import { Scene, type Painter } from './scene';
+import { cycleSetting, OPTIONS, useSettings, type Settings } from './settings';
 
 /**
  * Full-screen canvas plus a DOM layer laid over it on the same grid.
@@ -221,5 +222,35 @@ export function Prompt({ label, srLabel, onActivate }: { label: string; srLabel:
         >
             <span className="sr-only">{srLabel}</span>
         </button>
+    );
+}
+
+const STATUS_ITEMS = Object.keys(OPTIONS) as (keyof Settings)[];
+
+/**
+ * The settings, as a one-row status line pinned to the bottom row. Each item
+ * is a real button that cycles its setting; the canvas only clears the rain
+ * behind the line so it reads.
+ */
+export function StatusLine() {
+    const settings = useSettings();
+    const ref = useRef<HTMLElement>(null);
+    useCellRegion(ref, (buf, rect) => paintClear(buf, rect));
+    return (
+        <footer className="grid-status">
+            <nav ref={ref} aria-label="Settings">
+                {STATUS_ITEMS.map((key) => (
+                    <button
+                        key={key}
+                        type="button"
+                        className="grid-status-item"
+                        onClick={() => cycleSetting(key)}
+                        aria-label={`${key}: ${settings[key]}. Change`}
+                    >
+                        {key}:<span className="value">{settings[key]}</span>
+                    </button>
+                ))}
+            </nav>
+        </footer>
     );
 }

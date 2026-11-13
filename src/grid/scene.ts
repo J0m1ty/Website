@@ -5,7 +5,9 @@
 //      region (parents before children)
 //   3. hand the buffer to the renderer, which redraws only changed cells
 
-import { BOLD, CellBuffer, parseColor, rgb } from './buffer';
+import { BOLD, CellBuffer, parseColor } from './buffer';
+import { reducedMotion } from './settings';
+import { P, paletteVersion } from './palette';
 import type { Metrics } from './metrics';
 import { Rain } from './rain';
 import { Renderer } from './renderer';
@@ -42,8 +44,6 @@ interface Region {
     reveal: Reveal | null;
 }
 
-const HUD = rgb(30, 110, 60);
-const INK = rgb(166, 232, 182);
 
 export class Scene {
     metrics: Metrics | null = null;
@@ -57,7 +57,7 @@ export class Scene {
     private snap = new CellBuffer(0, 0);   // cells under a revealing region, before it paints
     /** A ring transition in progress: components added meanwhile decode in with it. */
     private ring: { reveal: Reveal; end: number } | null = null;
-    private still = window.matchMedia('(prefers-reduced-motion: reduce)');
+    private palette = paletteVersion();
 
     constructor(canvas: HTMLCanvasElement) {
         this.renderer = new Renderer(canvas);
@@ -119,7 +119,7 @@ export class Scene {
      * background, one after another in document order. Skipped for reduced motion.
      */
     boot() {
-        if (this.still.matches) return;
+        if (reducedMotion()) return;
         const ordered = [...this.regions].sort((a, b) =>
             a.el.compareDocumentPosition(b.el) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
         const t = clock();
@@ -137,7 +137,7 @@ export class Scene {
      */
     startRing() {
         const m = this.metrics;
-        if (!m || this.still.matches) return 0;
+        if (!m || reducedMotion()) return 0;
         const reveal: Reveal = {
             start: clock(), seed: 7,
             shape: { kind: 'ring', x: m.bufCols / 2, y: m.bufRows / 2, aspect: m.cwDev / m.chDev },
@@ -153,17 +153,25 @@ export class Scene {
         if (!m) return;
         const dt = this.last ? Math.min(0.1, (now - this.last) / 1000) : 0;
         this.last = now;
-        if (!this.still.matches) {
+        const still = reducedMotion();
+        if (!still) {
             this.time += dt;
             this.rain.update(dt);
         }
 
+        if (this.palette !== paletteVersion()) {
+            this.palette = paletteVersion();
+            this.renderer.invalidate();
+            // Mirrored text holds colors read from CSS.
+            for (const r of this.regions) r.textDirty = true;
+        }
+
         this.layout(m);
-        this.rain.paint(this.buf);
+        this.rain.paint(this.buf, still);
         const t = clock();
         for (const r of this.regions) {
             if (!r.rect) continue;
-            const frame = { time: this.time, still: this.still.matches, light: this.rain.light, text: r.text };
+            const frame = { time: this.time, still, light: this.rain.light, text: r.text };
             if (!r.reveal) {
                 r.paint(this.buf, r.rect, frame);
                 continue;
@@ -194,9 +202,6 @@ export class Scene {
             if (t < this.ring.end) paintFront(this.buf, this.ring.reveal, t);
             else this.ring = null;
         }
-
-        const hud = `${m.cols}×${m.rows}`;
-        this.buf.text(m.padX + m.cols - hud.length - 1, m.padY + m.rows - 1, hud, HUD);
 
         this.renderer.draw(this.buf);
     }
@@ -253,7 +258,7 @@ function readText(el: HTMLElement, m: Metrics): TextGlyph[] {
         if (!parent) continue;
         const style = getComputedStyle(parent);
         // Mirrored text is transparent in the DOM; its intended color lives in --ink.
-        const color = parseColor(style.getPropertyValue('--ink'), INK);
+        const color = parseColor(style.getPropertyValue('--ink'), P.ink);
         const flags = parseInt(style.fontWeight) >= 600 ? BOLD : 0;
         const data = node.data;
         for (let i = 0; i < data.length; i++) {

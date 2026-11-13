@@ -8,7 +8,8 @@
 // With `hide`, it runs the other way round: the component is there until the
 // front reaches it, and gone after.
 
-import { CellBuffer, mix, rgb, SPACE } from './buffer';
+import { CellBuffer, mix, SPACE } from './buffer';
+import { P } from './palette';
 import { hash } from './hash';
 import type { Metrics } from './metrics';
 import type { CellRect } from './scene';
@@ -24,8 +25,6 @@ interface Front {
 const FALL: Front = { speed: 16, trail: 4, jitter: 5 };
 const RING: Front = { speed: 40, trail: 7, jitter: 3 };
 
-const HEAD = rgb(225, 255, 232);
-const TAIL = rgb(20, 120, 60);
 
 export type RevealShape =
     | { kind: 'fall' }
@@ -90,7 +89,7 @@ export function applyReveal(buf: CellBuffer, snap: CellBuffer, r: CellRect, rv: 
 /** A digit in the trail; k is 1 at the front, fading back along the trail. */
 function trailCell(buf: CellBuffer, i: number, x: number, y: number, k: number, step: number) {
     buf.glyph[i] = hash(x, y, step) < 0.5 ? 48 : 49;
-    buf.fg[i] = mix(TAIL, HEAD, k * k);
+    buf.fg[i] = mix(P.revealTail, P.revealHead, k * k);
     buf.flags[i] = 0;
     buf.aux[i] = 0;
     buf.under[i] = SPACE;

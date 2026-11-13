@@ -9,6 +9,17 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap">
     <meta name="color-scheme" content="dark">
     <style>html, body { background: #000; }</style>
+    <script>
+        // /grid in light mode: start on its paper background, not black (keep in
+        // step with src/grid/settings.ts and palette.ts).
+        try {
+            if (location.pathname.startsWith('/grid')) {
+                var s = JSON.parse(localStorage.getItem('jomity.grid.settings') || '{}');
+                var light = s.mode === 'light' || (s.mode !== 'dark' && matchMedia('(prefers-color-scheme: light)').matches);
+                if (light) document.documentElement.style.background = '#fafafa';
+            }
+        } catch (e) {}
+    </script>
     <title>jomity.net</title>
 </head>
 <body>
