@@ -73,8 +73,8 @@ function Layout() {
                     <p>
                         Hi, I'm <strong>Jonathan Schultz</strong> (Jomity). I'm a 3rd
                         year Honors student at RIT. I study computer science and
-                        math, and I co-founded Insidyr in 2024. I enjoy everything coding,
-                        but I'm most interested in backend work on distributed systems.
+                        math, and I co-founded Insidyr in 2025. I enjoy everything coding,
+                        and I'm especially interested in backend work on distributed systems.
                     </p>
                     <p className="dim">...loading other interests...</p>
                     <p>
