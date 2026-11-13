@@ -71,13 +71,14 @@ function Layout() {
             <div className="grid-demo-row">
                 <Panel title="about" width={narrow ? full : 48}>
                     <p>
-                        Hi, I'm <strong>Jonathan Schultz</strong> (Jomity). I study
-                        computer science and math at RIT, and I founded Insidyr.
-                        I'm most interested in backend work on distributed systems.
+                        Hi, I'm <strong>Jonathan Schultz</strong> (Jomity). I'm a 3rd
+                        year Honors student at RIT. I study computer science and
+                        math, and I co-founded Insidyr in 2024. I enjoy everything coding,
+                        but I'm most interested in backend work on distributed systems.
                     </p>
                     <p className="dim">...loading other interests...</p>
                     <p>
-                        I lift, row, listen to a lot of music, do competitive
+                        In my free time, I lift, row, listen to a lot of music, do competitive
                         programming and math, and play chess. Challenge me at
                         Beat Saber, I dare you!
                     </p>

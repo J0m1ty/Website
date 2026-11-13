@@ -51,25 +51,25 @@ export const JOBS: Job[] = [
         title: 'Student Grader',
         employer: 'Rochester Institute of Technology',
         when: 'Aug 2026 to present',
-        text: 'Evaluate and score coursework for Intro to Computer Science Theory (CSCI 262) against standardized rubrics, auditing for accuracy and completeness. I leave detailed, constructive feedback, keep student grades tracked and up to date, and answer student emails quickly.',
+        text: 'Evaluating coursework for Intro to Computer Science Theory (CSCI 262) against standardized rubrics. I leave detailed, constructive feedback and answer student emails quickly.',
     },
     {
         title: 'Software Engineering Intern',
         employer: 'Lockheed Martin',
         when: 'May 2026 to Dec 2026',
-        text: 'At Missiles and Fire Control, proposed a standard architecture for telemetry tools and moved legacy C++ tools onto it in Python and React, rewriting HDLC serial protocols and checking them with hardware-in-the-loop tests. Built CI/CD pipelines that took test coverage from zero to 90% and cut runtime by over 60%.',
+        text: 'Proposed a standard architecture for telemetry tools at Missiles and Fire Control and moved legacy C++ tools onto it using Python and React, checking them with hardware-in-the-loop tests. I built CI/CD pipelines that took test coverage from zero to 90% and cut runtime by over 60%.',
     },
     {
         title: 'Teaching Assistant',
         employer: 'Rochester Institute of Technology',
         when: 'Aug 2025 to Dec 2025',
-        text: 'Helped teach and grade Intro to Software Engineering (SWEN 261) in class, and ran workshops on object-oriented programming, software design and working in teams.',
+        text: 'Helped support instruction and grade for Intro to Software Engineering (SWEN 261). I led multiple cross-section workshops on object-oriented programming, software design, and the Angular framework.',
     },
     {
         title: 'Co-founder',
         employer: 'Insidyr Technologies',
         when: 'Jan 2025 to present',
-        text: 'Building a zero-commission trading platform on Discord and the web, with Alpaca for brokerage and Stripe for payments. The backend runs on Cloudflare Workers, Queues and Durable Objects, with an Elixir/OTP service keeping per-user trade streams consistent.',
+        text: 'Building a zero-commission trading platform on Discord and the web, with Alpaca for brokerage services and Stripe for payments. The backend runs on Cloudflare (Workers, Queues, and Hyperdrive) and an Elixir/OTP service for handling WebSocket trade updates.',
     },
     {
         title: 'Peer Tutor',
@@ -89,14 +89,14 @@ export const PERSONAL: Project[] = [
         langs: 'TypeScript',
         star: true,
         links: [{ href: 'https://status.jomity.net', label: 'status' }],
-        text: 'The Linux server behind this site, running since 2021. It hosts web services, APIs and game servers in Docker for a few thousand visitors a month, behind Cloudflare and NGINX.',
+        text: 'The Linux server behind this site, running since 2021. It hosts Dockerized web services, APIs and game servers for a few thousand visitors a month, behind Cloudflare and NGINX.',
     },
     {
         name: 'market maker',
         langs: 'TypeScript',
         star: true,
         links: [{ href: 'https://market.jomity.net', label: 'try it' }, gh('marketmaker')],
-        text: 'A real-time supply-and-demand simulator used for live classroom demos at RIT, with adjustable elasticity, price controls and market shocks. Rewriting its regression math made rendering about 50x faster.',
+        text: 'A real-time supply-and-demand simulator used for live classroom demos at RIT, with adjustable elasticity, price controls and market shocks. Speeding up regression algorithms by 50x enabled real-time rendering on mobile devices.',
     },
     {
         name: 'r6 geoguessr',
@@ -107,7 +107,7 @@ export const PERSONAL: Project[] = [
         name: 'threadblend',
         langs: 'TypeScript',
         links: [gh('threadblend')],
-        text: 'A Discord bot for channel management.',
+        text: 'A Discord bot for channel management, made for my friends.',
     },
     {
         name: 'ts-safe-union',
@@ -119,7 +119,7 @@ export const PERSONAL: Project[] = [
         name: 'mindustrity',
         langs: 'Java',
         links: [gh('Mindustrity')],
-        text: 'A quality-of-life mod for the game Mindustry.',
+        text: 'A quality-of-life mod for Mindustry.',
     },
 ];
 
@@ -129,19 +129,19 @@ export const SCHOOL: Project[] = [
         langs: 'C#',
         star: true,
         links: [{ href: 'https://jomity.itch.io/armadahex', label: 'play' }, { href: 'https://armadahex.blogspot.com', label: 'dev blog' }],
-        text: 'Battleship with hexagons, the New Media capstone at FLCC while I was dual enrolled. I led a team of 7 building it in Unity, with Photon networking, our own auth server, matchmaking and chat. Quadtree LODs cut load times by over 80% so it could run in the browser.',
+        text: 'Battleship with hexagons, the New Media capstone at FLCC while I was dual enrolled. I led a team of 7 building it in Unity, with Photon networking, our own auth server, matchmaking and chat. Implementing Quadtree LODs cut load times by over 80% so it could run in the browser.',
     },
     {
         name: 'secure messenger',
         langs: 'C#',
         links: [gh('RIT-COPADS-02/secure-messaging-app')],
-        text: 'Peer-to-peer chat for Parallel and Distributed Systems at RIT. I led a team of 3 pairing RSA key exchange with AES, and made the peer mesh fault-tolerant with UDP discovery, heartbeats and backoff reconnection.',
+        text: 'An encrypted peer-to-peer messaging app for Parallel and Distributed Systems at RIT. I led a team of 3 and was responsible for RSA key exchange, AES message encryption, and SHA-256 signature verification. We made the peer mesh fault-tolerant with UDP discovery, heartbeats and backoff reconnection.',
     },
     {
         name: 'relational records',
         langs: 'TypeScript, SQL',
         links: [gh('RIT-PDM-03-Group-52-Music/PDM-Project')],
-        text: 'A music library app on Postgres for Principles of Data Management at RIT. We designed the schema, loaded the data, built the app on top, and finished with an analysis of what the data showed.',
+        text: 'A music library app on Postgres for Principles of Data Management at RIT, with collections, ratings, follows and genre-based recommendations. Instead of menus you just chat with it, and an LLM plans calls against our type-checked SQL API.',
     },
     {
         name: 'pong ai',
@@ -153,7 +153,7 @@ export const SCHOOL: Project[] = [
         name: 'tank tower defense',
         langs: 'Python',
         links: [gh('TankTowerDefense')],
-        text: 'A vehicle-based tower defense game, made at Operation Catapult at Rose-Hulman.',
+        text: 'A vehicle-based tower defense game, made during one week at Operation Catapult at Rose-Hulman.',
     },
 ];
 
