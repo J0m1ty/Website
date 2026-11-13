@@ -1,0 +1,22 @@
+# jomity.net
+
+> Personal site of Jonathan Schultz (Jomity), an Honors computer science and math student at RIT and co-founder of Insidyr Technologies. He is especially interested in backend work on distributed systems.
+
+The homepage at https://jomity.net/ has an about section, links, work experience, personal and school projects, and RIT coursework. It renders in the browser with JavaScript, so the resume PDF is the easiest plain source for the same details.
+
+## Profile
+
+- [Resume](https://jomity.net/resume.pdf): education, experience, projects and skills (PDF)
+- [GitHub](https://github.com/J0m1ty): source code for most projects
+- [LinkedIn](https://www.linkedin.com/in/jomity/): professional profile
+
+## Projects
+
+- [market maker](https://market.jomity.net): real-time supply-and-demand simulator used for classroom demos at RIT
+- [armadahex](https://jomity.itch.io/armadahex): hexagonal Battleship built in Unity with a team of 7
+- [ts-safe-union](https://www.npmjs.com/package/ts-safe-union): TypeScript utility for destructuring discriminated unions
+- [pong ai](https://j0m1ty.github.io/PongAI/): reinforcement learning Pong in Unity, playable in the browser
+
+## Contact
+
+- [Email](mailto:jomity@hotmail.com)
