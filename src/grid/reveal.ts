@@ -34,13 +34,29 @@ export interface Reveal { start: number; seed: number; shape: RevealShape; hide?
 
 const front = (rv: Reveal) => (rv.shape.kind === 'ring' ? RING : FALL);
 
+// The ring's edge wobbles smoothly with the angle (LOBES bumps around the
+// circle) plus a little per-cell grain. Pure per-cell noise made the edge
+// speckled: single cells finished early and showed as squares of card fill
+// inside the band of digits, which stood out on the light theme.
+const LOBES = 4;
+const GRAIN = 0.4;      // share of the jitter that stays per-cell
+
+/** Smooth noise in [0, 1) around a circle; `u` in turns. */
+function ringNoise(u: number, seed: number) {
+    const p = (((u % 1) + 1) % 1) * LOBES;
+    const i = Math.floor(p), t = p - i;
+    const a = hash(i % LOBES, seed, 3), b = hash((i + 1) % LOBES, seed, 3);
+    return a + (b - a) * t * t * (3 - 2 * t);
+}
+
 /** How far (in rows) the front travels before reaching a cell. */
 function distance(rv: Reveal, x: number, y: number, r: CellRect) {
     const f = front(rv);
     const s = rv.shape;
     if (s.kind === 'fall') return (y - r.row) + hash(x - r.col, rv.seed, 11) * f.jitter;
     const dx = (x + 0.5 - s.x) * s.aspect, dy = y + 0.5 - s.y;
-    return Math.sqrt(dx * dx + dy * dy) + hash(x, y, rv.seed) * f.jitter;
+    const wobble = ringNoise(Math.atan2(dy, dx) / (2 * Math.PI), rv.seed) * (1 - GRAIN) + hash(x, y, rv.seed) * GRAIN;
+    return Math.sqrt(dx * dx + dy * dy) + wobble * f.jitter;
 }
 
 /** The furthest any cell of the rect is from where the front starts, in rows. */
