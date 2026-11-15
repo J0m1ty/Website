@@ -20,17 +20,17 @@ const HUES: Record<Theme, number | null> = { green: null, amber: 70, cyan: 205, 
 
 const BASE = {
     bg: rgb(0, 0, 0),
-    fill: rgb(5, 15, 9),            // inside a card
-    border: rgb(45, 190, 95),
+    fill: rgb(3, 10, 6),            // inside a card
+    border: rgb(28, 119, 60),
     title: rgb(190, 255, 205),      // card titles
-    ink: rgb(166, 232, 182),        // body text
-    strong: rgb(200, 255, 214),
+    ink: rgb(188, 243, 201),        // body text
+    strong: rgb(216, 255, 226),
     link: rgb(114, 255, 163),
-    dim: rgb(79, 154, 102),
+    dim: rgb(106, 180, 128),
     selection: rgb(29, 138, 70),
     selectionInk: rgb(240, 255, 243),
     focus: rgb(45, 190, 95),
-    rainHead: rgb(215, 255, 225),
+    rainHead: rgb(185, 245, 200),
     hot: rgb(130, 255, 175),        // logo glitch digits
     steady: rgb(35, 175, 85),       // logo, rain glow: unlit
     rainLit: rgb(225, 255, 232),    // logo, rain glow: lit
@@ -44,7 +44,7 @@ const BASE = {
 const RAIN_LEVELS = 16;
 // Rain: resting field to lit stream, quantized so the glyph atlas stays small.
 const BASE_RAIN = Array.from({ length: RAIN_LEVELS }, (_, i) =>
-    mix(rgb(0, 30, 12), rgb(40, 235, 105), Math.pow(i / (RAIN_LEVELS - 1), 1.7)));
+    mix(rgb(0, 15, 6), rgb(30, 200, 90), Math.pow(i / (RAIN_LEVELS - 1), 2)));
 // Logo shimmer, dark to light.
 const BASE_SHIMMER = Array.from({ length: 8 }, (_, i) => mix(rgb(40, 200, 95), rgb(225, 255, 232), i / 7));
 
@@ -123,8 +123,10 @@ function build(theme: Theme, light: boolean): Palette {
     const mono = theme === 'mono';
     // Paper: the page a touch grey, cards near white, both faintly tinted
     // with the theme's hue. (A flipped dark fill came out as tinted slabs.)
-    out.bg = fromLch(0.955, mono ? 0 : 0.008, h);
-    out.fill = fromLch(0.995, mono ? 0 : 0.004, h);
+    out.bg = fromLch(0.975, mono ? 0 : 0.005, h);
+    out.fill = fromLch(0.997, mono ? 0 : 0.002, h);
+    // Links keep some color: flipped, they came out nearly as black as the text.
+    out.link = fromLch(mono ? 0.3 : 0.5, mono ? 0 : 0.15, h);
     // Rain and the decode transitions: the resting field is the page itself
     // (invisible), and streams build to the theme's most vivid color rather
     // than flipping to near-black. (fromLch gives up chroma only as far as the

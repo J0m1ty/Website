@@ -13,6 +13,12 @@ export const IN_DOWN = 8;
 export const IN_LEFT = 16;
 export const INSIDE = IN_UP | IN_RIGHT | IN_DOWN | IN_LEFT;
 
+/**
+ * A background that isn't there: the layer below shows through. Only the
+ * scrolling layer uses it (the rain shows through the page's empty cells).
+ */
+export const TRANSPARENT = 0x1000000;
+
 /** Colors are packed 0xRRGGBB numbers. */
 export const rgb = (r: number, g: number, b: number) => ((r & 255) << 16) | ((g & 255) << 8) | (b & 255);
 
@@ -50,6 +56,10 @@ export class CellBuffer {
     readonly under: Uint32Array;   // a glyph drawn beneath this one (masked by its fill)
     readonly underFg: Uint32Array;
     readonly flags: Uint8Array;
+    /** On a transparent background: the page color laid over it, 0..255, for shadows. */
+    readonly shade: Uint8Array;
+    /** What a transparent cell's background becomes once something is drawn in it. */
+    ground = 0;
 
     constructor(cols: number, rows: number) {
         this.cols = cols;
@@ -62,16 +72,39 @@ export class CellBuffer {
         this.under = new Uint32Array(this.size).fill(SPACE);
         this.underFg = new Uint32Array(this.size);
         this.flags = new Uint8Array(this.size);
+        this.shade = new Uint8Array(this.size);
+    }
+
+    /** Every cell empty and transparent. */
+    clear(ground: number) {
+        this.ground = ground;
+        this.glyph.fill(SPACE);
+        this.bg.fill(TRANSPARENT);
+        this.aux.fill(0);
+        this.under.fill(SPACE);
+        this.flags.fill(0);
+        this.shade.fill(0);
+    }
+
+    /** An empty cell that hides whatever is below it (e.g. the rain behind some text). */
+    blank(x: number, y: number) {
+        if (!this.has(x, y)) return;
+        const i = y * this.cols + x;
+        this.glyph[i] = SPACE;
+        this.under[i] = SPACE;
+        this.flags[i] = 0;
+        if (this.bg[i] === TRANSPARENT) this.bg[i] = this.ground;
     }
 
     has(x: number, y: number) {
         return x >= 0 && y >= 0 && x < this.cols && y < this.rows;
     }
 
-    /** Sets a cell's character and colors, keeping its background. */
+    /** Sets a cell's character and colors, keeping its background (a transparent one becomes the ground). */
     set(x: number, y: number, ch: string | number, fg: number, flags = 0, aux = 0) {
         if (!this.has(x, y)) return;
         const i = y * this.cols + x;
+        if (this.bg[i] === TRANSPARENT) this.bg[i] = this.ground;
         this.glyph[i] = typeof ch === 'number' ? ch : ch.codePointAt(0)!;
         this.fg[i] = fg;
         this.flags[i] = flags;
@@ -86,8 +119,10 @@ export class CellBuffer {
     edge(x: number, y: number, ch: string, fg: number, flags: number, aux: number) {
         if (!this.has(x, y)) return;
         const i = y * this.cols + x;
-        const below = this.glyph[i], belowFg = this.fg[i];
+        const below = this.glyph[i], belowFg = this.fg[i], belowBg = this.bg[i];
         this.set(x, y, ch, fg, flags, aux);
+        // The outside part stays see-through.
+        this.bg[i] = belowBg;
         this.under[i] = below;
         this.underFg[i] = belowFg;
     }
@@ -106,6 +141,7 @@ export class CellBuffer {
         this.under[i] = other.under[i];
         this.underFg[i] = other.underFg[i];
         this.flags[i] = other.flags[i];
+        this.shade[i] = other.shade[i];
     }
 
     copyFrom(other: CellBuffer) {
@@ -116,5 +152,6 @@ export class CellBuffer {
         this.under.set(other.under);
         this.underFg.set(other.underFg);
         this.flags.set(other.flags);
+        this.shade.set(other.shade);
     }
 }

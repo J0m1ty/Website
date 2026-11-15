@@ -2,8 +2,10 @@
 // font once, then rounded to whole *device* pixels, so the canvas and the DOM
 // agree exactly on where every column and row starts.
 
-// Loaded in index.html. Also tried: "Space Mono".
-export const FONT_FAMILY = '"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace';
+// Self-hosted (index.tsx). Also tried: JetBrains Mono (the first choice),
+// Space Mono, and a round of IBM Plex Mono, Fira Code, Source Code Pro, Geist
+// Mono, Red Hat Mono, DM Mono, Inconsolata and Martian Mono.
+export const FONT_FAMILY = '"Roboto Mono", ui-monospace, Menlo, Consolas, monospace';
 
 export interface Metrics {
     dpr: number;
@@ -17,14 +19,12 @@ export interface Metrics {
     rows: number;
     oxDev: number;          // grid origin (leftover pixels split evenly), device px
     oyDev: number;
-    // The canvas grid: the layout grid plus one partly-visible cell on any
-    // side with leftover pixels, so the background reaches the screen edges.
-    padX: number;           // extra columns on each side (currently 0)
-    padY: number;
+    // The canvas grid. It scrolls with the page (see Scene.frame), so it
+    // covers the screen plus `margin` rows above and below, and is moved
+    // along whenever scrolling gets near either end.
+    margin: number;
     bufCols: number;
     bufRows: number;
-    bufOxDev: number;       // canvas grid origin, device px (may be negative)
-    bufOyDev: number;
     widthDev: number;       // viewport, device px
     heightDev: number;
     width: number;          // viewport, CSS px
@@ -52,20 +52,18 @@ export function measure(width: number, height: number): Metrics {
 
     const oxDev = Math.floor((widthDev - cols * cwDev) / 2);
     const oyDev = Math.floor((heightDev - rows * chDev) / 2);
-    const padX = 0;
-    const padY = 1;
+    // Half a screen either side. Moving the canvas repaints all of it, so not
+    // too often; but it's a big bitmap on phones, so not too tall either.
+    const margin = Math.ceil(rows / 2) + 2;
 
     return {
         dpr, fontSize, advance,
         cwDev, chDev, cw: cwDev / dpr, ch: chDev / dpr,
         cols, rows, oxDev, oyDev,
-        padX, padY,
-        bufCols: cols + 2 * padX,
-        // Plus one row below: while scrolling the canvas shifts up by up to a
-        // row (see Scene.frame), and this fills the gap it leaves.
-        bufRows: rows + 2 * padY + 1,
-        bufOxDev: oxDev - padX * cwDev,
-        bufOyDev: oyDev - padY * chDev,
+        margin,
+        bufCols: cols,
+        // Plus the partly visible row at the top and bottom of the screen.
+        bufRows: rows + 2 + 2 * margin,
         widthDev, heightDev, width, height,
     };
 }

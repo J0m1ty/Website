@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useGrid } from '../grid/context';
 import { Banner, GridRoot, Panel, Prompt, StatusLine } from '../grid/react';
-import { COURSES, GPA, JOBS, JOBS_PREVIEW, LINKS, PERSONAL, SCHOOL, type Job, type Link, type Project } from './content';
+import { COURSES, JOBS, JOBS_PREVIEW, LINKS, PERSONAL, SCHOOL, type Job, type Link, type Project } from './content';
 
 export default function Home() {
     return (
@@ -66,25 +66,30 @@ function Layout() {
     return (
         <>
         <main className="grid-demo">
-            <Banner text="jomity.net" scale={1} />
+            <Banner text="jomity.net" scale={1} shadow />
 
             <div className="grid-demo-row">
-                <Panel title="about" width={narrow ? full : 48}>
+                <Panel title="about.txt" width={narrow ? full : 48}>
                     <p>
-                        Hi, I'm <strong>Jonathan Schultz</strong> (Jomity). I'm a 3rd
-                        year Honors student at RIT. I study computer science and
-                        math, and I co-founded Insidyr in 2025. I enjoy everything coding,
-                        and I'm especially interested in backend work on distributed systems.
+                        Hi! I'm <strong>Jonathan Schultz</strong> (Jomity), a 3rd year Honors CS and
+                        math student at RIT and co-founder of Insidyr.
                     </p>
-                    <p className="dim">...loading other interests...</p>
                     <p>
-                        In my free time, I lift, row, listen to a lot of music, do competitive
-                        programming and math, and play chess. Challenge me at
-                        Beat Saber, I dare you!
+                        I have strong backend experience with TypeScript, C#, and C++, and I'm
+                        eager to learn new things.
                     </p>
+                    <p>
+                        In my free time, you'll find me listening to lots of music, lifting at
+                        the gym, playing chess, or competing in coding and math.
+                    </p>
+                    { narrow && (
+                        <p>
+                            Don't hesitate to reach out if you wanna chat or wish to collaborate!
+                        </p>
+                    )}
                 </Panel>
 
-                <Panel title="links" width={narrow ? full : 24}>
+                <Panel title="links.txt" width={narrow ? full : 24}>
                     {/* A column per group when the card is full width, else one list with a row between groups. */}
                     <div className={narrow ? 'link-columns' : 'link-groups'}>
                         {LINKS.map((group, i) => (
@@ -96,31 +101,36 @@ function Layout() {
                 </Panel>
             </div>
 
-            <Panel title="experience" width={full}>
+            <Panel title="experience.txt" width={full}>
                 <More items={JOBS} preview={JOBS_PREVIEW} render={(job) => <JobEntry job={job} />} />
             </Panel>
 
-            <Panel title="personal projects" width={full}>
+            <Panel title="personal projects.txt" width={full}>
                 <More items={PERSONAL} show={2} render={(p) => <ProjectEntry project={p} />} />
             </Panel>
 
-            <Panel title="school projects" width={full}>
+            <Panel title="school projects.txt" width={full}>
                 <More items={SCHOOL} show={2} render={(p) => <ProjectEntry project={p} />} />
             </Panel>
 
-            <Panel title="coursework" width={full}>
-                <More items={COURSES} show={2} summary={<p className="dim">{GPA}</p>} render={(t) => (
+            <Panel title="coursework.txt" width={full}>
+                <More items={COURSES} show={2} render={(t) => (
                     <>
-                        <strong>{t.term}</strong>
+                        <strong>&gt; {t.term}</strong>
                         <ul>
-                            {t.courses.map(([code, name]) => <li key={code}><span className="dim">{code}</span> {name}</li>)}
+                            {t.courses.map(([code, name, honors, grade, credits, important]) => 
+                                <li key={code}>
+                                    <span className="dim">[{code}]</span> {honors ? 'Honors ' : ''}{name}
+                                    {grade !== null && <span className="dim grade"> ({grade}%)</span>}
+                                </li>
+                            )}
                         </ul>
                     </>
                 )} />
             </Panel>
         </main>
         {/* Only on the page, never the splash: the ring would decode it out for good. */}
-        <StatusLine width={full} right={[`© ${YEAR} Jonathan Schultz`, `© ${YEAR}`]} />
+        <StatusLine width={full} right={[`© ${YEAR} Jonathan Schultz`, `© ${YEAR}`, ``]} />
         </>
     );
 }
@@ -156,7 +166,7 @@ function More<T>({ items, show = 2, preview, summary, render }: MoreProps<T>) {
             {open && summary}
             {hidden > 0 && (
                 <button type="button" className="text-button" aria-expanded={open} onClick={() => setOpen(!open)}>
-                    {open ? '> less' : `> ${hidden} more`}
+                    {open ? '> fewer' : `> ${hidden} more`}
                 </button>
             )}
         </>
@@ -182,7 +192,7 @@ function ProjectEntry({ project: p }: { project: Project }) {
         <>
             <div className="entry-head">
                 <span>
-                    {p.star && <span className="star">* </span>}
+                    {p.star && <><span className="star" aria-label="Highlight">[★]</span> </>}
                     <strong>{p.name}</strong>
                     {p.langs && <span className="dim"> ({p.langs})</span>}
                 </span>

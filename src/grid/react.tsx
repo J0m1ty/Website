@@ -21,6 +21,7 @@ import { cycleSetting, OPTIONS, useSettings, type Settings } from './settings';
 export function GridRoot({ children, boot = true }: { children: ReactNode; boot?: boolean }) {
     const bootRef = useRef(boot);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const backRef = useRef<HTMLCanvasElement>(null);
     const [grid, setGrid] = useState<Grid | null>(null);
 
     useEffect(() => {
@@ -50,8 +51,8 @@ export function GridRoot({ children, boot = true }: { children: ReactNode; boot?
                 document.fonts.load(`400 16px ${FONT_FAMILY}`),
                 document.fonts.load(`700 16px ${FONT_FAMILY}`),
             ]).catch(() => {});
-            if (cancelled || !canvasRef.current) return;
-            scene = new Scene(canvasRef.current);
+            if (cancelled || !canvasRef.current || !backRef.current) return;
+            scene = new Scene(canvasRef.current, backRef.current);
             resize();
             scene.start();
             window.addEventListener('resize', resize);
@@ -64,79 +65,67 @@ export function GridRoot({ children, boot = true }: { children: ReactNode; boot?
         };
     }, []);
 
-    // Scroll in whole rows. Pixel scrolling made the snapping fight back: a
-    // tiny scroll moved the text a few pixels, then the next frame snapped it
-    // back to the same row.
+    // Scrolling is native and free, wheel and touch alike: the page's canvas
+    // scrolls with its text, and the rain stays put behind both.
     const rootRef = useRef<HTMLDivElement>(null);
-    const ch = grid?.metrics.ch;
+    const contentRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
-        const root = rootRef.current;
-        if (grid) grid.scene.scroller = root;
-        if (!root || !ch) return;
-        let pending = 0;
-        const onWheel = (e: WheelEvent) => {
-            if (e.ctrlKey || root.scrollHeight <= root.clientHeight) return;
-            e.preventDefault();
-            pending += e.deltaMode === 1 ? e.deltaY * ch
-                : e.deltaMode === 2 ? e.deltaY * root.clientHeight
-                : e.deltaY;
-            const rows = Math.trunc(pending / ch);
-            if (!rows) return;
-            pending -= rows * ch;
-            root.scrollTop = Math.round(root.scrollTop / ch) * ch + rows * ch;
-        };
-        // Touch, keyboard and scrollbar scrolling stay native; settle on a row when they stop.
-        const onScrollEnd = () => {
-            const target = Math.round(root.scrollTop / ch) * ch;
-            if (Math.abs(target - root.scrollTop) > 0.5) root.scrollTo({ top: target });
-        };
-        root.addEventListener('wheel', onWheel, { passive: false });
-        root.addEventListener('scrollend', onScrollEnd);
-        return () => {
-            root.removeEventListener('wheel', onWheel);
-            root.removeEventListener('scrollend', onScrollEnd);
-        };
-    }, [ch, grid]);
+        if (!grid) return;
+        grid.scene.scroller = rootRef.current;
+        grid.scene.content = contentRef.current;
+    }, [grid]);
 
     const m = grid?.metrics;
+    // The page's padding puts its content box exactly on the grid; the canvas
+    // reaches into the padding, to the screen's edges.
+    const pad = m && {
+        top: m.oyDev / m.dpr,
+        left: m.oxDev / m.dpr,
+        right: (m.widthDev - m.oxDev - m.cols * m.cwDev) / m.dpr,
+        bottom: (m.heightDev - m.oyDev - m.rows * m.chDev) / m.dpr,
+    };
     return (
         <>
-            <canvas ref={canvasRef} className="grid-canvas" aria-hidden />
-            {grid && m && (
-                <GridContext.Provider value={grid}>
-                    <div
-                        ref={rootRef}
-                        className="grid-root"
-                        style={{
-                            left: m.oxDev / m.dpr,
-                            top: m.oyDev / m.dpr,
-                            width: m.cols * m.cw,
-                            fontFamily: FONT_FAMILY,
-                            height: m.rows * m.ch,
-                            '--cw': `${m.cw}px`,
-                            '--ch': `${m.ch}px`,
-                            '--fs': `${m.fontSize}px`,
-                            // stretches the font's own spacing to exactly one cell per character
-                            '--ls': `${m.cw - m.advance}px`,
-                        } as CSSProperties}
-                    >
+        <canvas ref={backRef} className="grid-back" aria-hidden />
+        <div ref={rootRef} className="grid-root" style={{ fontFamily: FONT_FAMILY }}>
+            <div
+                ref={contentRef}
+                className="grid-page"
+                style={m && pad ? {
+                    padding: `${pad.top}px ${pad.right}px ${pad.bottom}px ${pad.left}px`,
+                    '--cw': `${m.cw}px`,
+                    '--ch': `${m.ch}px`,
+                    '--fs': `${m.fontSize}px`,
+                    // stretches the font's own spacing to exactly one cell per character
+                    '--ls': `${m.cw - m.advance}px`,
+                    '--cols': m.cols,
+                    '--rows': m.rows,
+                    '--screen-h': `${m.rows * m.ch}px`,
+                } as CSSProperties : undefined}
+            >
+                <div className="grid-canvas-clip" aria-hidden>
+                    <canvas ref={canvasRef} className="grid-canvas" />
+                </div>
+                {grid && (
+                    <GridContext.Provider value={grid}>
                         {children}
-                    </div>
-                </GridContext.Provider>
-            )}
+                    </GridContext.Provider>
+                )}
+            </div>
+        </div>
         </>
     );
 }
 
 /** Paints into whatever cells the element covers, every frame. */
-export function useCellRegion(ref: RefObject<HTMLElement | null>, paint: Painter, { mirror = false } = {}) {
+export function useCellRegion(ref: RefObject<HTMLElement | null>, paint: Painter, { mirror = false, shadow = false } = {}) {
     const { scene } = useGrid();
     const paintRef = useRef(paint);
     useLayoutEffect(() => { paintRef.current = paint; });
     useLayoutEffect(() => {
         if (!ref.current) return;
-        return scene.add(ref.current, (buf, rect, frame) => paintRef.current(buf, rect, frame), { mirror });
-    }, [scene, ref, mirror]);
+        return scene.add(ref.current, (buf, rect, frame) => paintRef.current(buf, rect, frame), { mirror, shadow });
+    }, [scene, ref, mirror, shadow]);
 }
 
 interface PanelProps {
@@ -158,7 +147,8 @@ export function Panel({ title, fill = 'solid', border = 'round', width, classNam
         (buf, rect, frame) => rain
             ? paintRainPanel(buf, rect, frame, border, title)
             : paintPanel(buf, rect, border, title),
-        { mirror: rain },
+        // Solid cards stand off the rain; rain cards are meant to sit in it.
+        { mirror: rain, shadow: !rain },
     );
     return (
         <section
@@ -178,10 +168,12 @@ interface BannerProps {
     look?: BannerLook;
     /** Pixel size; by default 2 on big screens, else 1. */
     scale?: number;
+    /** Darken the rain around it (not on the splash, where it sits in the rain). */
+    shadow?: boolean;
 }
 
 /** Big decorative letters drawn on the canvas; screen readers get the text. Click to glitch. */
-export function Banner({ text, glow = 'shimmer', look = 'blocks', scale: fixed }: BannerProps) {
+export function Banner({ text, glow = 'shimmer', look = 'blocks', scale: fixed, shadow = false }: BannerProps) {
     const { metrics } = useGrid();
     const scale = fixed ?? (metrics.cols >= 110 && metrics.rows >= 40 ? 2 : 1);
     const size = bannerSize(text, scale);
@@ -195,7 +187,7 @@ export function Banner({ text, glow = 'shimmer', look = 'blocks', scale: fixed }
             time: frame.time, scale, look, glow, light: frame.light,
             glitch: t < g.length ? { seed: g.seed, t } : null,
         });
-    });
+    }, { shadow });
     return (
         <h1
             ref={ref}

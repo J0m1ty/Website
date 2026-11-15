@@ -27,29 +27,40 @@ html,
    chosen theme. The values here are the original green/dark, for first paint. */
 :root {
     --c-bg: #000000;
-    --c-ink: #a6e8b6;
-    --c-strong: #c8ffd6;
+    --c-ink: #bcf3c9;
+    --c-strong: #d8ffe2;
     --c-link: #72ffa3;
-    --c-dim: #4f9a66;
+    --c-dim: #6ab480;
     --c-selection: #1d8a46;
     --c-selection-ink: #f0fff3;
     --c-focus: #2dbe5f;
 }
 
-.grid-canvas {
+/* The rain (or plain page color): fixed to the screen, behind everything. */
+.grid-back {
     position: fixed;
     left: 0;
     top: 0;
     background: var(--c-bg);
 }
 
-/* The DOM layer: same origin and cell size as the canvas. Everything in it is
-   unselectable chrome unless a panel opts back in. */
+/* The scroller: the whole screen, see-through to the rain. */
 .grid-root {
     position: fixed;
+    inset: 0;
     overflow-x: hidden;
     overflow-y: auto;
     scrollbar-width: none;
+}
+
+/* The page. Its padding lines its content box up with the grid; the canvas
+   sits behind everything in it and scrolls with it. Everything in it is
+   unselectable chrome unless a panel opts back in. */
+.grid-page {
+    position: relative;
+    box-sizing: border-box;
+    min-height: 100%;
+    isolation: isolate;
     user-select: none;
     -webkit-user-select: none;
     font-size: var(--fs);
@@ -60,6 +71,21 @@ html,
     color: var(--ink);
 }
 
+/* Clips the canvas to the page, so it never makes the page scroll further. */
+.grid-canvas-clip {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.grid-canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
 .grid-root ::selection {
     background: var(--c-selection);
     color: var(--c-selection-ink);
@@ -68,7 +94,17 @@ html,
 .grid-root a {
     --ink: var(--c-link);
     color: var(--ink);
+    /* A thin, quieter underline, dropped below the descenders so it doesn't
+       cut through the letters (it still fits inside the row). */
     text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    text-decoration-skip-ink: auto;
+    text-decoration-color: color-mix(in srgb, var(--c-link) 45%, var(--c-bg));
+}
+
+.grid-root a:hover {
+    text-decoration-color: var(--c-link);
 }
 
 .grid-root a:hover {
@@ -80,6 +116,11 @@ html,
 .grid-root .dim {
     --ink: var(--c-dim);
     color: var(--ink);
+}
+
+/* Course grades: there if you look, but quieter than the course names. */
+.grid-root .grade {
+    opacity: 0.5;
 }
 
 /* Rain cards: the canvas draws the text (lit by the rain), so the HTML copy is
@@ -148,10 +189,9 @@ html,
     width: calc(var(--cw) * 14);
 }
 
-/* Highlighted projects. */
+/* Highlighted projects: the star is one inverted cell, so it catches the eye. */
 .star {
-    --ink: var(--c-link);
-    color: var(--ink);
+    color: var(--title);
     font-weight: 700;
 }
 
@@ -190,7 +230,7 @@ html,
 
 .grid-demo {
     /* one row short of the screen: the status line takes the last row */
-    min-height: calc(100% - var(--ch));
+    min-height: calc(var(--screen-h) - var(--ch));
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -206,9 +246,9 @@ html,
     gap: var(--ch) calc(var(--cw) * 2);
 }
 
-/* Splash: covers the page until entered; everything visible is on the canvas. */
+/* Splash: covers the screen until entered; everything visible is on the canvas. */
 .grid-splash {
-    position: absolute;
+    position: fixed;
     inset: 0;
     display: flex;
     flex-direction: column;
