@@ -8,7 +8,7 @@
 // With `hide`, it runs the other way round: the component is there until the
 // front reaches it, and gone after.
 
-import { CellBuffer, mix, SPACE } from './buffer';
+import { CellBuffer, mix, SPACE, TRANSPARENT } from './buffer';
 import { P } from './palette';
 import { hash } from './hash';
 import type { Metrics } from './metrics';
@@ -81,6 +81,21 @@ export function revealDone(rv: Reveal, r: CellRect, t: number) {
 }
 
 /**
+ * How far the front is past a cell, 0 (not reached) to 1 (its trail has
+ * gone by). For a fall, cells outside `r` count as its nearest cell.
+ */
+export function revealPassed(rv: Reveal, x: number, y: number, r: CellRect, t: number) {
+    const f = front(rv);
+    if (rv.shape.kind === 'fall') {
+        x = Math.max(r.col, Math.min(r.col + r.w - 1, x));
+        y = Math.max(r.row, Math.min(r.row + r.h - 1, y));
+    }
+    const e = t - rv.start - distance(rv, x, y, r) / f.speed;
+    const k = Math.max(0, Math.min(1, e / (f.trail / f.speed)));
+    return rv.hide ? 1 - k : k;
+}
+
+/**
  * `buf` holds the component painted over `snap` (the same cells just before
  * it was painted). Cells the front says shouldn't show go back to `snap`;
  * cells in the trail get the falling digits.
@@ -115,6 +130,8 @@ function trailCell(buf: CellBuffer, i: number, x: number, y: number, k: number, 
     buf.flags[i] = 0;
     buf.aux[i] = 0;
     buf.under[i] = SPACE;
+    // Over the rain, the digit covers it rather than mixing with it.
+    if (buf.bg[i] === TRANSPARENT) buf.bg[i] = buf.ground;
 }
 
 /** Draws the front's band of digits across the whole screen, background included. */

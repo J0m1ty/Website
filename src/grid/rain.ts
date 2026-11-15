@@ -1,5 +1,8 @@
 // The background layer: a field of dim 1s and 0s with brighter streams
 // falling through it, one stream per column.
+//
+// It belongs to the screen, not the page: it's drawn on its own fixed canvas
+// behind the scrolling one, so scrolling moves the content over it.
 
 import { CellBuffer } from './buffer';
 import { P } from './palette';

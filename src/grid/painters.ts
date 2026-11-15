@@ -81,9 +81,9 @@ export function paintRainPanel(buf: CellBuffer, r: CellRect, f: Frame, style: Bo
         for (let x = col + 1; x < col + w - 1; x++) {
             if (!buf.has(x, y)) continue;
             const i = y * buf.cols + x;
+            // The rain is on the layer below: cover it, except where a stream is bright.
             const l = f.light[i];
-            if (l < 0.35 || (x - col >= from && x - col <= to)) buf.glyph[i] = SPACE;
-            else buf.fg[i] = mix(P.bg, buf.fg[i], (l - 0.35) * 0.6);
+            if (l < 0.35 || (x - col >= from && x - col <= to)) buf.blank(x, y);
         }
     }
 
@@ -100,9 +100,7 @@ export function paintRainPanel(buf: CellBuffer, r: CellRect, f: Frame, style: Bo
 /** Clears the rain under a rectangle, plus one cell either side, so DOM text on it reads. */
 export function paintClear(buf: CellBuffer, r: CellRect) {
     for (let y = r.row; y < r.row + r.h; y++) {
-        for (let x = r.col - 1; x <= r.col + r.w; x++) {
-            if (buf.has(x, y)) buf.glyph[y * buf.cols + x] = SPACE;
-        }
+        for (let x = r.col - 1; x <= r.col + r.w; x++) buf.blank(x, y);
     }
 }
 
@@ -241,7 +239,7 @@ export function paintBanner(buf: CellBuffer, r: CellRect, text: string, o: Banne
             for (let ax = 0; ax < areaW; ax++) {
                 const d = dist[ay * areaW + ax];
                 const x = r.col + ax - MARGIN_X, y = r.row + ay - MARGIN_Y;
-                if (d > 0 && d <= OUTLINE && buf.has(x, y)) buf.glyph[y * buf.cols + x] = SPACE;
+                if (d > 0 && d <= OUTLINE) buf.blank(x, y);
             }
         }
     }
@@ -276,8 +274,6 @@ export function paintPrompt(buf: CellBuffer, r: CellRect, label: string, time: n
     const len = [...label].length;
     const x0 = r.col + Math.floor((r.w - len) / 2);
     // Clear the rain right behind the words (one cell either side) so they read.
-    for (let x = x0 - 1; x <= x0 + len; x++) {
-        if (buf.has(x, r.row)) buf.glyph[r.row * buf.cols + x] = SPACE;
-    }
+    for (let x = x0 - 1; x <= x0 + len; x++) buf.blank(x, r.row);
     buf.text(x0, r.row, label, color, BOLD);
 }
