@@ -1,6 +1,6 @@
 # jomity.net
 
-<img width="1786" height="1244" alt="image" src="https://github.com/user-attachments/assets/d8c8a41c-fd59-4497-89a1-fa2ecfa276d7" />
+<img width="2682" height="1328" alt="image" src="https://github.com/user-attachments/assets/b59e9ac4-bbd5-49d0-b945-9bac04bc45d6" />
 
 Landing page for my website. Built with Vite, React, Tailwind and Pixi.js. View the separate status page at [status.jomity.net](https://status.jomity.net).
 
